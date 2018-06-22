@@ -1,0 +1,182 @@
+unit IO.MyCat.Net.Mysql;
+
+interface
+
+uses
+  System.SysUtils;
+
+type
+  TMySQLPacket = class
+  public const
+    //
+    // none, this is an internal thread state
+    //
+    COM_SLEEP: Byte = 0;
+    //
+    // mysql_close
+    //
+    COM_QUIT: Byte = 1;
+    //
+    // mysql_select_db
+    //
+    COM_INIT_DB: Byte = 2;
+    //
+    // mysql_real_query
+    //
+    COM_QUERY: Byte = 3;
+    //
+    // mysql_list_fields
+    //
+    COM_FIELD_LIST: Byte = 4;
+    //
+    // mysql_create_db (deprecated)
+    //
+    COM_CREATE_DB: Byte = 5;
+    //
+    // mysql_drop_db (deprecated)
+    //
+    COM_DROP_DB: Byte = 6;
+    //
+    // mysql_refresh
+    //
+    COM_REFRESH: Byte = 7;
+    //
+    // mysql_shutdown
+    //
+    COM_SHUTDOWN: Byte = 8;
+    //
+    // mysql_stat
+    //
+    COM_STATISTICS: Byte = 9;
+    //
+    // mysql_list_processes
+    //
+    COM_PROCESS_INFO: Byte = 10;
+    //
+    // none, this is an internal thread state
+    //
+    COM_CONNECT: Byte = 11;
+    //
+    // mysql_kill
+    //
+    COM_PROCESS_KILL: Byte = 12;
+    //
+    // mysql_dump_debug_info
+    //
+    COM_DEBUG: Byte = 13;
+    //
+    // mysql_ping
+    //
+    COM_PING: Byte = 14;
+    //
+    // none, this is an internal thread state
+    //
+    COM_TIME: Byte = 15;
+    //
+    // none, this is an internal thread state
+    //
+    COM_DELAYED_INSERT: Byte = 16;
+    //
+    // mysql_change_user
+    //
+    COM_CHANGE_USER: Byte = 17;
+    //
+    // used by slave server mysqlbinlog
+    //
+    COM_BINLOG_DUMP: Byte = 18;
+    //
+    // used by slave server to get master table
+    //
+    COM_TABLE_DUMP: Byte = 19;
+    //
+    // used by slave to log connection to master
+    //
+    COM_CONNECT_OUT: Byte = 20;
+    //
+    // used by slave to register to master
+    //
+    COM_REGISTER_SLAVE: Byte = 21;
+    //
+    // mysql_stmt_prepare
+    //
+    COM_STMT_PREPARE: Byte = 22;
+    //
+    // mysql_stmt_execute
+    //
+    COM_STMT_EXECUTE: Byte = 23;
+    //
+    // mysql_stmt_send_long_data
+    //
+    COM_STMT_SEND_LONG_DATA: Byte = 24;
+    //
+    // mysql_stmt_close
+    //
+    COM_STMT_CLOSE: Byte = 25;
+    //
+    // mysql_stmt_reset
+    //
+    COM_STMT_RESET: Byte = 26;
+    //
+    // mysql_set_server_option
+    //
+    COM_SET_OPTION: Byte = 27;
+    //
+    // mysql_stmt_fetch
+    //
+    COM_STMT_FETCH: Byte = 28;
+    //
+    // Mycat heartbeat
+    //
+    COM_HEARTBEAT: Byte = 64;
+
+    // 包头大小
+    PacketHeaderSize: Integer = 4;
+
+  public
+    PacketLength: Integer;
+    PacketId: Byte;
+
+  public
+    //
+    // 计算数据包大小，不包含包头长度。
+    //
+    function CalcPacketSize: Integer; virtual; abstract;
+
+    //
+    // 取得数据包信息
+    //
+  protected
+    function GetPacketInfo: String; virtual; abstract;
+
+  end;
+
+  ///
+  // @author mycat暂时只发现在load data infile时用到
+  //
+type
+  TEmptyPacket = class(TMySQLPacket)
+  public const
+    EMPTY: Tbytes = [0, 0, 0, 3];
+  public
+    function CalcPacketSize: Integer; virtual; abstract;
+  protected
+    function GetPacketInfo: String; virtual; abstract;
+  end;
+  // public class EmptyPacket extends MySQLPacket {
+  // public static final
+  //
+  // @Override
+  // public int calcPacketSize() {
+  // return 0;
+  // }
+  //
+  // @Override
+  // protected String getPacketInfo() {
+  // return "MySQL Empty Packet";
+  // }
+  //
+  // }
+
+implementation
+
+end.

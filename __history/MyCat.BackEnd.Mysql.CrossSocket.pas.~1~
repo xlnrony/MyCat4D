@@ -1,0 +1,7 @@
+unit MyCat.BackEnd.Mysql.CrossSocket;
+
+interface
+
+implementation
+
+end.

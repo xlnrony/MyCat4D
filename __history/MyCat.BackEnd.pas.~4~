@@ -1,0 +1,65 @@
+unit MyCat.BackEnd;
+
+interface
+
+uses
+  Net.CrossSocket.Base;
+
+type
+  IBackendConnection = interface(ICrossConnection)
+    ['{534E64EC-D095-4CC2-B55E-99FE8AACE0C4}']
+    function isModifiedSQLExecuted: Boolean;
+
+    function isFromSlaveDB: Boolean;
+
+  function
+     getSchema:string;
+
+    procedure setSchema( newSchema:string);
+
+    function getLastTime:Int64;
+
+    function isClosedOrQuit:Boolean;
+
+    procedure setAttachment(attachment:TObject);
+
+    procedure quit;
+
+    procedure setLastTime(long currentTimeMillis);
+
+    procedure release();
+
+function setResponseHandler(ResponseHandler commandHandler):    Boolean;
+
+    procedure commit();
+
+    procedure query(String sql);
+
+    function getAttachment:TObject;
+
+    procedure execute(RouteResultsetNode node, ServerConnection source,
+      Boolean autocommit)throws IOException;
+
+    procedure recordSql(String host, String schema, String statement);
+
+    Boolean syncAndExcute();
+
+    void rollback();
+
+    Boolean isBorrowed();
+
+    void setBorrowed(Boolean borrowed);
+
+    int getTxIsolation();
+
+    Boolean isAutocommit();
+
+    long getId();
+
+    void discardClose(String reason);
+
+  end;
+
+implementation
+
+end.

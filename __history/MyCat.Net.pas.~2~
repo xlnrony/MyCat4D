@@ -1,0 +1,17 @@
+unit MyCat.Net;
+
+interface
+
+uses
+  Net.CrossSocket.Base, Net.CrossSocket;
+
+type
+  TBackEndConnection = class(TCrossConnection,
+    ICrossConnection)
+
+  end;
+
+
+implementation
+
+end.
