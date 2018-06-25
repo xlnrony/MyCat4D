@@ -655,24 +655,6 @@ type
     function GetPacketInfo: string; override;
   end;
 
-  // public class  extends  {
-  //
-  //
-  // public void write(FrontendConnection c) {
-  //
-  // }
-  //
-  // @Override
-  // public int calcPacketSize() {
-  // }
-  //
-  // @Override
-  // protected String getPacketInfo() {
-  // return "MySQL HandshakeV10 Packet";
-  // }
-  //
-  // }
-
   // *
   // * From client to server when the client do heartbeat between mycat cluster.
   // *
@@ -831,6 +813,82 @@ type
   protected
     { protected declarations }
   public
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  /// **
+  // * load data local infile 向客户端请求发送文件用
+  // */
+  TRequestFilePacket = class(TMySQLPacket)
+  public const
+    FIELD_COUNT: Byte = 251;
+  private
+    FCommand: Byte;
+    FFileName: TBytes;
+  public
+    constructor Create;
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // *
+  // * COM_STMT_RESET resets the data of a prepared statement which was accumulated with COM_STMT_SEND_LONG_DATA commands and closes the cursor if it was opened with COM_STMT_EXECUTE
+  //
+  // * The server will send a OK_Packet if the statement could be reset, a ERR_Packet if not.
+  // *
+  // * COM_STMT_RESET:
+  // * COM_STMT_RESET
+  // * direction: client -> server
+  // * response: OK or ERR
+  //
+  // * payload:
+  // *   1              [1a] COM_STMT_RESET
+  // *   4              statement-id
+  // *
+  TResetPacket = class(TMySQLPacket)
+  private const
+    PACKET_FALG: Byte = 26;
+  private
+    FPStmtID: Int64;
+  public
+    procedure Read(Data: TBytes);
+    function CalcPacketSize: Integer; override;
+
+    property PStmtID: Int64 read FPStmtID;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // *
+  // * From server to client after command, if no error and result set -- that is,
+  // * if the command was a query which returned a result set. The Result Set Header
+  // * Packet is the first of several, possibly many, packets that the server sends
+  // * for result sets. The order of packets for a result set is:
+  // *
+  // * (Result Set Header Packet)   the number of columns
+  // * (Field Packets)              column descriptors
+  // * (EOF Packet)                 marker: end of Field Packets
+  // * (Row Data Packets)           row contents
+  // * (EOF Packet)                 marker: end of Data Packets
+  // *
+  // * Bytes                        Name
+  // * -----                        ----
+  // * 1-9   (Length-Coded-Binary)  field_count
+  // * 1-9   (Length-Coded-Binary)  extra
+  // *
+  // * @see http://forge.mysql.com/wiki/MySQL_Internals_ClientServer_Protocol#Result_Set_Header_Packet
+  // *
+  TResultSetHeaderPacket = class(TMySQLPacket)
+  private
+    FFieldCount: Integer;
+    FExtra: Int64;
+  public
+    procedure Read(const Data: TBytes); overload;
     procedure Write(const Stream: TStream); override;
     function CalcPacketSize: Integer; override;
   protected
@@ -1973,19 +2031,22 @@ begin
   Inc(Result, 2); // capability flags (upper 2 bytes)
   Inc(Result, 1);
   Inc(Result, 10); // reserved (all [00])
-  if ((serverCapabilities & Capabilities.CLIENT_SECURE_CONNECTION)! = 0) then begin
+  if (FServerCapabilities and TCapabilities.CLIENT_SECURE_CONNECTION) <> 0 then
+  begin
     // restOfScrambleBuff.length always to be 12
-    if(restOfScrambleBuff.length <= 13) {
-    size += 13;
-  }
-  else {
-      size += restOfScrambleBuff.length;
-    }
-    }
-  if ((serverCapabilities & Capabilities.CLIENT_PLUGIN_AUTH)! = 0) {
-    size += (authPluginName.length + 1); // auth-plugin name
-  }
-    return size;
+    if Length(FRestOfScrambleBuff) <= 13 then
+    begin
+      Inc(Result, 13);
+    end
+    else
+    begin
+      Inc(Result, Length(FRestOfScrambleBuff));
+    end;
+  end;
+  if (FServerCapabilities and TCapabilities.CLIENT_PLUGIN_AUTH) <> 0 then
+  begin
+    Inc(Result, Length(FAuthPluginName) + 1); // auth-plugin name
+  end;
 end;
 
 constructor THandshakeV10Packet.Create;
@@ -1995,7 +2056,7 @@ end;
 
 function THandshakeV10Packet.GetPacketInfo: string;
 begin
-
+  Result := 'MySQL HandshakeV10 Packet';
 end;
 
 procedure THandshakeV10Packet.Write(const Stream: TStream);
@@ -2046,6 +2107,98 @@ begin
   if (FServerCapabilities and TCapabilities.CLIENT_PLUGIN_AUTH) <> 0 then
   begin
     Stream.WriteWithNull(FAuthPluginName);
+  end;
+end;
+
+{ TRequestFilePacket }
+
+function TRequestFilePacket.CalcPacketSize: Integer;
+begin
+  Result := 1 + Length(FFileName);
+end;
+
+constructor TRequestFilePacket.Create;
+begin
+  FCommand := FIELD_COUNT;
+end;
+
+function TRequestFilePacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Request File Packet';
+end;
+
+procedure TRequestFilePacket.Write(const Stream: TStream);
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteData(FCommand);
+  if FFileName <> nil then
+  begin
+    Stream.WriteData(FFileName, Length(FFileName));
+  end;
+end;
+
+{ TResetPacket }
+
+function TResetPacket.CalcPacketSize: Integer;
+begin
+  Result := 1 + 4;
+end;
+
+function TResetPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Reset Packet';
+end;
+
+procedure TResetPacket.Read(Data: TBytes);
+var
+  MM: TMySQLMessage;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3();
+  FPacketId := MM.ReadByte;
+  Assert(MM.ReadByte = PACKET_FALG);
+  FPStmtID := MM.ReadUB4;
+end;
+
+{ TResultSetHeaderPacket }
+
+function TResultSetHeaderPacket.CalcPacketSize: Integer;
+begin
+  Result := TStream.GetLength(FFieldCount);
+  if FExtra > 0 then
+  begin
+    Inc(Result, TStream.GetLength(FExtra));
+  end;
+end;
+
+function TResultSetHeaderPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL ResultSetHeader Packet';
+end;
+
+procedure TResultSetHeaderPacket.Read(const Data: TBytes);
+var
+  MM: TMySQLMessage;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3;
+  FPacketId := MM.ReadByte;
+  FFieldCount := Integer(MM.ReadLength);
+  if MM.HasRemaining then
+  begin
+    FExtra := MM.ReadLength;
+  end;
+end;
+
+procedure TResultSetHeaderPacket.Write(const Stream: TStream);
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteLength(FFieldCount);
+  if FExtra > 0 then
+  begin
+    Stream.WriteLength(FExtra);
   end;
 end;
 
