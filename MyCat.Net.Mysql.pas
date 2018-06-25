@@ -142,8 +142,8 @@ type
     // 计算数据包大小，不包含包头长度。
     //
     function CalcPacketSize: Integer; virtual; abstract;
-    procedure Write(Stream: TStream); overload; virtual; abstract;
-    procedure Write(Connection: ICrossConnection); overload; virtual;
+    procedure Write(const Stream: TStream); overload; virtual; abstract;
+    procedure Write(const Connection: ICrossConnection); overload; virtual;
   protected
     //
     // 取得数据包信息
@@ -178,7 +178,7 @@ type
     DataBase: string;
 
     procedure Read(Data: TBytes);
-    procedure Write(Stream: TStream); overload; override;
+    procedure Write(const Stream: TStream); overload; override;
     function CalcPacketSize: Integer; override;
   protected
     function GetPacketInfo: String; override;
@@ -193,11 +193,11 @@ type
     FIELD_EOF = 5;
     ROW = 6;
     PACKET_EOF = 7;
+  private
+    FData: TBytes;
   public
-    Data: TBytes;
-  public
-    procedure Read(Stream: TStream);
-    procedure Write(Stream: TStream); overload; override;
+    procedure Read(const Stream: TStream);
+    procedure Write(const Stream: TStream); overload; override;
     function CalcPacketSize: Integer; override;
   protected
     function GetPacketInfo: String; override;
@@ -244,23 +244,23 @@ type
     FName: TBytes;
 
     FOrgName: TBytes;
-    FCharsetIndex: Integer;
+    FCharsetIndex: SmallInt;
     FLength: Int64;
     FType: Integer;
-    FFlags: Integer;
+    FFlags: SmallInt;
     FDecimals: Byte;
     FDefinition: TBytes;
 
     procedure ReadBody(const MM: TMySQLMessage);
-    procedure WriteBody(Stream: TStream);
+    procedure WriteBody(const Stream: TStream);
   public
 
     // *
     // * 把字节数组转变成FieldPacket
     // *
-    procedure Read(Data: TBytes); overload;
-    procedure Read(Bin: TBinaryPacket); overload;
-    procedure Write(Stream: TStream); overload; override;
+    procedure Read(const Data: TBytes); overload;
+    procedure Read(const BinaryPacket: TBinaryPacket); overload;
+    procedure Write(const Stream: TStream); overload; override;
     function CalcPacketSize: Integer; override;
   protected
     function GetPacketInfo: String; override;
@@ -293,12 +293,12 @@ type
     FFieldCount: Integer;
     FFieldValues: TList<TBytes>;
   public
-    constructor Create(FieldCount: Integer);
+    constructor Create(const FieldCount: Integer);
 
-    procedure Add(Value: TBytes);
-    procedure AddFieldCount(Add: Integer);
-    procedure Read(Data: TBytes);
-    procedure Write(Stream: TStream); overload; override;
+    procedure Add(const Value: TBytes);
+    procedure AddFieldCount(const Add: Integer);
+    procedure Read(const Data: TBytes);
+    procedure Write(const Stream: TStream); overload; override;
 
     function CalcPacketSize: Integer; override;
     // property Value: TBytes read FValue;
@@ -349,9 +349,9 @@ type
     // * @param fieldPackets 字段包集合
     // * @param rowDataPk 文本协议行数据包
     // *
-    procedure Read(FieldPackets: TList<TFieldPacket>;
-      RowDataPacket: TRowDataPacket);
-    procedure Write(Stream: TStream); override;
+    procedure Read(const FieldPackets: TList<TFieldPacket>;
+      const RowDataPacket: TRowDataPacket);
+    procedure Write(const Stream: TStream); override;
     function CalcPacketSize: Integer; override;
   protected
     function GetPacketInfo: string; override;
@@ -417,8 +417,8 @@ type
     FCommand: Byte;
     FArg: TBytes;
   public
-    procedure Read(Data: TBytes);
-    procedure Write(Stream: TStream); override;
+    procedure Read(const Data: TBytes);
+    procedure Write(const Stream: TStream); override;
     function CalcPacketSize: Integer; override;
   protected
     function GetPacketInfo: string; override;
@@ -444,12 +444,12 @@ type
     FIELD_COUNT: Byte = $FE;
   private
     FFieldCount: Byte;
-    FWarningCount: Integer;
-    FStatus: Integer;
+    FWarningCount: SmallInt;
+    FStatus: SmallInt;
   public
     constructor Create;
-    procedure Read(Data: TBytes);
-    procedure Write(Stream: TStream); override;
+    procedure Read(const Data: TBytes);
+    procedure Write(const Stream: TStream); override;
     function CalcPacketSize: Integer; override;
   protected
     function GetPacketInfo: string; override;
@@ -477,115 +477,369 @@ type
     SQLSTATE_MARKER: Byte = Ord('#');
     DEFAULT_SQLSTATE: TBytes = [Ord('H'), Ord('Y'), Ord('0'), Ord('0'),
       Ord('0')];
+  private
+    FFieldCount: Byte;
+    FErrno: SmallInt;
+    FMark: Byte;
+    FSqlState: TBytes;
+    FMessage: TBytes;
+  public
+    constructor Create;
 
+    procedure Read(const BinaryPacket: TBinaryPacket); overload;
+    procedure Read(const Data: TBytes); overload;
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
   end;
-  // public class ErrorPacket extends MySQLPacket {
-  //
-  // public byte fieldCount = FIELD_COUNT;
-  // public int errno;
-  // public byte mark = SQLSTATE_MARKER;
-  // public byte[] sqlState = DEFAULT_SQLSTATE;
-  // public byte[] message;
-  //
-  // public void read(BinaryPacket bin) {
-  // packetLength = bin.packetLength;
-  // packetId = bin.packetId;
-  // MySQLMessage mm = new MySQLMessage(bin.data);
-  // fieldCount = mm.read();
-  // errno = mm.readUB2();
-  // if (mm.hasRemaining() && (mm.read(mm.position()) == SQLSTATE_MARKER)) {
-  // mm.read();
-  // sqlState = mm.readBytes(5);
-  // }
-  // message = mm.readBytes();
-  // }
-  //
-  // public void read(byte[] data) {
-  // MySQLMessage mm = new MySQLMessage(data);
-  // packetLength = mm.readUB3();
-  // packetId = mm.read();
-  // fieldCount = mm.read();
-  // errno = mm.readUB2();
-  // if (mm.hasRemaining() && (mm.read(mm.position()) == SQLSTATE_MARKER)) {
-  // mm.read();
-  // sqlState = mm.readBytes(5);
-  // }
-  // message = mm.readBytes();
-  // }
-  //
-  // public byte[] writeToBytes(FrontendConnection c) {
-  // ByteBuffer buffer = c.allocate();
-  // buffer = write(buffer, c, false);
-  // buffer.flip();
-  // byte[] data = new byte[buffer.limit()];
-  // buffer.get(data);
-  // c.recycle(buffer);
-  // return data;
-  // }
-  // public byte[] writeToBytes() {
-  // ByteBuffer buffer = ByteBuffer.allocate(calcPacketSize()+4);
-  // int size = calcPacketSize();
-  // BufferUtil.writeUB3(buffer, size);
-  // buffer.put(packetId);
-  // buffer.put(fieldCount);
-  // BufferUtil.writeUB2(buffer, errno);
-  // buffer.put(mark);
-  // buffer.put(sqlState);
-  // if (message != null) {
-  // buffer.put(message);
-  // }
-  // buffer.flip();
-  // byte[] data = new byte[buffer.limit()];
-  // buffer.get(data);
-  //
-  // return data;
-  // }
-  // @Override
-  // public ByteBuffer write(ByteBuffer buffer, FrontendConnection c,
-  // boolean writeSocketIfFull) {
-  // int size = calcPacketSize();
-  // buffer = c.checkWriteBuffer(buffer, c.getPacketHeaderSize() + size,
-  // writeSocketIfFull);
-  // BufferUtil.writeUB3(buffer, size);
-  // buffer.put(packetId);
-  // buffer.put(fieldCount);
-  // BufferUtil.writeUB2(buffer, errno);
-  // buffer.put(mark);
-  // buffer.put(sqlState);
-  // if (message != null) {
-  // buffer = c.writeToBuffer(message, buffer);
-  // }
-  // return buffer;
-  // }
-  //
+
+  // *
+  // *  Bytes                      Name
+  // *  -----                      ----
+  // *  1                          code
+  // *  4                          statement_id
+  // *  1                          flags
+  // *  4                          iteration_count
+  // *  (param_count+7)/8          null_bit_map
+  // *  1                          new_parameter_bound_flag (if new_params_bound == 1:)
+  // *  n*2                        type of parameters
+  // *  n                          values for the parameters
+  // *  --------------------------------------------------------------------------------
+  // *  code:                      always COM_EXECUTE
+  // *
+  // *  statement_id:              statement identifier
+  // *
+  // *  flags:                     reserved for future use. In MySQL 4.0, always 0.
+  // *                             In MySQL 5.0:
+  // *                               0: CURSOR_TYPE_NO_CURSOR
+  // *                               1: CURSOR_TYPE_READ_ONLY
+  // *                               2: CURSOR_TYPE_FOR_UPDATE
+  // *                               4: CURSOR_TYPE_SCROLLABLE
+  // *
+  // *  iteration_count:           reserved for future use. Currently always 1.
+  // *
+  // *  null_bit_map:              A bitmap indicating parameters that are NULL.
+  // *                             Bits are counted from LSB, using as many bytes
+  // *                             as necessary ((param_count+7)/8)
+  // *                             i.e. if the first parameter (parameter 0) is NULL, then
+  // *                             the least significant bit in the first byte will be 1.
+  // *
+  // *  new_parameter_bound_flag:  Contains 1 if this is the first time
+  // *                             that "execute" has been called, or if
+  // *                             the parameters have been rebound.
+  // *
+  // *  type:                      Occurs once for each parameter;
+  // *                             The highest significant bit of this 16-bit value
+  // *                             encodes the unsigned property. The other 15 bits
+  // *                             are reserved for the type (only 8 currently used).
+  // *                             This block is sent when parameters have been rebound
+  // *                             or when a prepared statement is executed for the
+  // *                             first time.
+  // *
+  // *  values:                    for all non-NULL values, each parameters appends its value
+  // *                             as described in Row Data Packet: Binary (column values)
+  // * @see https://dev.mysql.com/doc/internals/en/com-stmt-execute.html
+  // *
+
+  TExecutePacket = class(TMySQLPacket)
+  private
+    FCode: Byte;
+    FStatementId: Int64;
+    FFlags: Byte;
+    FIterationCount: Int64;
+    FNullBitMap: TBytes;
+    FNewParameterBoundFlag: Byte;
+    FValues: TArray<TBindValue>;
+    FPStmt: TPreparedStatement;
+  public
+    constructor Create(PStmt: TPreparedStatement);
+    procedure Read(Data: TBytes; Encoding: TEncoding);
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // *
+  // * From server to client during initial handshake.
+  // *
+  // * Bytes                        Name
+  // * -----                        ----
+  // * 1                            protocol_version
+  // * n (Null-Terminated String)   server_version
+  // * 4                            thread_id
+  // * 8                            scramble_buff
+  // * 1                            (filler) always 0x00
+  // * 2                            server_capabilities
+  // * 1                            server_language
+  // * 2                            server_status
+  // * 13                           (filler) always 0x00 ...
+  // * 13                           rest of scramble_buff (4.1)
+  // *
+  // * @see http://forge.mysql.com/wiki/MySQL_Internals_ClientServer_Protocol#Handshake_Initialization_Packet
+  // *
+  THandshakePacket = class(TMySQLPacket)
+  private const
+    FILLER_13: array [0 .. 12] of Byte = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0);
+  private
+    FProtocolVersion: Byte;
+    FServerVersion: TBytes;
+    FThreadId: Int64;
+    FSeed: TBytes;
+    FServerCapabilities: Integer;
+    FServerCharsetIndex: Byte;
+    FServerStatus: Integer;
+    FRestOfScrambleBuff: TBytes;
+  public
+    procedure Read(const BinaryPacket: TBinaryPacket); overload;
+    procedure Read(const Data: TBytes); overload;
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // *
+  // * From mycat server to client during initial handshake.
+  // *
+  // * Bytes                        Name
+  // * -----                        ----
+  // * 1                            protocol_version (always 0x0a)
+  // * n (string[NULL])             server_version
+  // * 4                            thread_id
+  // * 8 (string[8])                auth-plugin-data-part-1
+  // * 1                            (filler) always 0x00
+  // * 2                            capability flags (lower 2 bytes)
+  // *   if more data in the packet:
+  // * 1                            character set
+  // * 2                            status flags
+  // * 2                            capability flags (upper 2 bytes)
+  // *   if capabilities & CLIENT_PLUGIN_AUTH {
+  // * 1                            length of auth-plugin-data
+  // *   } else {
+  // * 1                            0x00
+  // *   }
+  // * 10 (string[10])              reserved (all 0x00)
+  // *   if capabilities & CLIENT_SECURE_CONNECTION {
+  // * string[$len]   auth-plugin-data-part-2 ($len=MAX(13, length of auth-plugin-data - 8))
+  // *   }
+  // *   if capabilities & CLIENT_PLUGIN_AUTH {
+  // * string[NUL]    auth-plugin name
+  // * }
+  // *
+  // * @see http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#Protocol::HandshakeV10
+  // *
+  THandshakeV10Packet = class(TMySQLPacket)
+  private const
+    FILLER_10: array [0 .. 9] of Byte = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    DEFAULT_AUTH_PLUGIN_NAME: TBytes = [Ord('m'), Ord('y'), Ord('s'), Ord('q'),
+      Ord('l'), Ord('_'), Ord('n'), Ord('a'), Ord('t'), Ord('i'), Ord('v'),
+      Ord('e'), Ord('_'), Ord('p'), Ord('a'), Ord('s'), Ord('s'), Ord('w'),
+      Ord('o'), Ord('r'), Ord('d')];
+  private
+    FProtocolVersion: Byte;
+    FServerVersion: TBytes;
+    FThreadId: Int64;
+    FSeed: TBytes; // auth-plugin-data-part-1
+    FServerCapabilities: Integer;
+    FServerCharsetIndex: Byte;
+    FServerStatus: Integer;
+    FRestOfScrambleBuff: TBytes; // auth-plugin-data-part-2
+    FAuthPluginName: TBytes;
+  public
+    constructor Create;
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // public class  extends  {
   //
   //
   // public void write(FrontendConnection c) {
-  // ByteBuffer buffer = c.allocate();
-  // buffer = this.write(buffer, c, true);
-  // c.write(buffer);
+  //
   // }
   //
   // @Override
   // public int calcPacketSize() {
-  // int size = 9;// 1 + 2 + 1 + 5
-  // if (message != null) {
-  // size += message.length;
-  // }
-  // return size;
   // }
   //
   // @Override
   // protected String getPacketInfo() {
-  // return "MySQL Error Packet";
+  // return "MySQL HandshakeV10 Packet";
   // }
   //
   // }
 
+  // *
+  // * From client to server when the client do heartbeat between mycat cluster.
+  // *
+  // * <pre>
+  // * Bytes         Name
+  // * -----         ----
+  // * 1             command
+  // * n             id
+  // *
+  THeartbeatPacket = class(TMySQLPacket)
+  private
+    FCommand: Byte;
+    FID: Int64;
+  public
+    procedure Read(const Data: TBytes);
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // *
+  // * COM_STMT_SEND_LONG_DATA sends the data for a column. Repeating to send it, appends the data to the parameter.
+  // * No response is sent back to the client.
+  //
+  // * COM_STMT_SEND_LONG_DATA:
+  // * COM_STMT_SEND_LONG_DATA
+  // * direction: client -> server
+  // * response: none
+  //
+  // * payload:
+  // *   1              [18] COM_STMT_SEND_LONG_DATA
+  // *   4              statement-id
+  // *   2              param-id
+  // *   n              data
+  // *
+  // * </pre>
+  // *
+  // * @see https://dev.mysql.com/doc/internals/en/com-stmt-send-long-data.html
+  // *
+  TLongDataPacket = class(TMySQLPacket)
+  private const
+    PACKET_FALG: Byte = 24;
+  private
+    FPStmtID: Int64;
+    FParamID: Int64;
+    FLongData: TBytes;
+  public
+    procedure Read(const Data: TBytes);
+    function CalcPacketSize: Integer; override;
+
+    property PStmtID: Int64 read FPStmtID;
+    property ParamID: Int64 read FParamID;
+    property LongData: TBytes read FLongData;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // *
+  // * From server to client in response to command, if no error and no result set.
+  // *
+  // * Bytes                       Name
+  // * -----                       ----
+  // * 1                           field_count, always = 0
+  // * 1-9 (Length Coded Binary)   affected_rows
+  // * 1-9 (Length Coded Binary)   insert_id
+  // * 2                           server_status
+  // * 2                           warning_count
+  // * n   (until end of packet)   message fix:(Length Coded String)
+  // *
+  // * @see http://forge.mysql.com/wiki/MySQL_Internals_ClientServer_Protocol#OK_Packet
+  // *
+  TOkPacket = class(TMySQLPacket)
+  public const
+    FIELD_COUNT: Byte = 0;
+    OK: array [0 .. 10] of Byte = (7, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0);
+  private
+    FFieldCount: Byte;
+    FAffectedRows: Int64;
+    FInsertId: Int64;
+    FServerStatus: Integer;
+    FWarningCount: Integer;
+    FMessage: TBytes;
+
+  public
+    constructor Create;
+    procedure Read(const BinaryPacket: TBinaryPacket); overload;
+    procedure Read(const Data: TBytes); overload;
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  TPingPacket = class(TMySQLPacket)
+  public const
+    PING: array [0 .. 4] of Byte = (1, 0, 0, 0, 14);
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  // *
+  // * From server to client, in response to prepared statement initialization packet.
+  // * It is made up of:
+  // *   1.a PREPARE_OK packet
+  // *   2.if "number of parameters" > 0
+  // *       (field packets) as in a Result Set Header Packet
+  // *       (EOF packet)
+  // *   3.if "number of columns" > 0
+  // *       (field packets) as in a Result Set Header Packet
+  // *       (EOF packet)
+  // *
+  // * -----------------------------------------------------------------------------------------
+  // *
+  // *  Bytes              Name
+  // *  -----              ----
+  // *  1                  0 - marker for OK packet
+  // *  4                  statement_handler_id
+  // *  2                  number of columns in result set
+  // *  2                  number of parameters in query
+  // *  1                  filler (always 0)
+  // *  2                  warning count
+  // *
+  // *  @see http://dev.mysql.com/doc/internals/en/prepared-statement-initialization-packet.html
+  // *
+
+  TPreparedOkPacket = class(TMySQLPacket)
+  private
+    FFlag: Byte;
+    FStatementId: Int64;
+    FColumnsNumber: Integer;
+    FParametersNumber: Integer;
+    FFiller: Byte;
+    FWarningCount: Integer;
+  public
+    constructor Create;
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  TQuitPacket = class(TMySQLPacket)
+  public const
+    QUIT: array [0 .. 4] of Byte = (1, 0, 0, 0, 1);
+  public
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
+  TReply323Packet = class(TMySQLPacket)
+  private
+    FSeed: TBytes;
+  protected
+    { protected declarations }
+  public
+    procedure Write(const Stream: TStream); override;
+    function CalcPacketSize: Integer; override;
+  protected
+    function GetPacketInfo: string; override;
+  end;
+
 implementation
 
-uses
-  MyCat.Config, MyCat.Util;
+uses MyCat.Config, MyCat.Util;
 
 { TEmptyPacket }
 
@@ -615,6 +869,7 @@ begin
 end;
 
 procedure TAuthPacket.Read(Data: TBytes);
+
 var
   MM: TMySQLMessage;
   Current: Integer;
@@ -643,7 +898,7 @@ begin
   end;
 end;
 
-procedure TAuthPacket.Write(Stream: TStream);
+procedure TAuthPacket.Write(const Stream: TStream);
 begin
   Stream.WriteUB3(CalcPacketSize);
   Stream.WriteData(FPacketId);
@@ -681,7 +936,7 @@ end;
 
 function TBinaryPacket.CalcPacketSize: Integer;
 begin
-  Result := Length(Data);
+  Result := Length(FData);
 end;
 
 function TBinaryPacket.GetPacketInfo: String;
@@ -689,23 +944,24 @@ begin
   Result := 'MySQL Binary Packet';
 end;
 
-procedure TBinaryPacket.Read(Stream: TStream);
+procedure TBinaryPacket.Read(const Stream: TStream);
 begin
   FPacketLength := Stream.ReadUB3;
   FPacketId := Stream.ReadByte;
-  Stream.ReadBuffer(Data, FPacketLength);
+  Stream.ReadBuffer(FData, FPacketLength);
 end;
 
-procedure TBinaryPacket.Write(Stream: TStream);
+procedure TBinaryPacket.Write(const Stream: TStream);
 begin
   Stream.WriteUB3(CalcPacketSize);
   Stream.WriteData(FPacketId);
-  Stream.WriteData(Data, Length(Data));
+  Stream.WriteData(FData, Length(FData));
 end;
 
 { TFieldPacket }
 
-procedure TFieldPacket.Read(Data: TBytes);
+procedure TFieldPacket.Read(const Data: TBytes);
+
 var
   MM: TMySQLMessage;
 begin
@@ -735,13 +991,14 @@ begin
   Result := 'MySQL Field Packet';
 end;
 
-procedure TFieldPacket.Read(Bin: TBinaryPacket);
+procedure TFieldPacket.Read(const BinaryPacket: TBinaryPacket);
+
 var
   MM: TMySQLMessage;
 begin
-  FPacketLength := Bin.FPacketLength;
-  FPacketId := Bin.FPacketId;
-  MM := TMySQLMessage.Create(Bin.Data);
+  FPacketLength := BinaryPacket.FPacketLength;
+  FPacketId := BinaryPacket.FPacketId;
+  MM := TMySQLMessage.Create(BinaryPacket.FData);
   ReadBody(MM);
 end;
 
@@ -767,14 +1024,15 @@ begin
   end;
 end;
 
-procedure TFieldPacket.Write(Stream: TStream);
+procedure TFieldPacket.Write(const Stream: TStream);
 begin
   Stream.WriteUB3(CalcPacketSize);
   Stream.WriteData(FPacketId);
   WriteBody(Stream);
 end;
 
-procedure TFieldPacket.WriteBody(Stream: TStream);
+procedure TFieldPacket.WriteBody(const Stream: TStream);
+
 const
   NullVal: Byte = 0;
 begin
@@ -801,7 +1059,8 @@ end;
 
 { TMySQLPacket }
 
-procedure TMySQLPacket.Write(Connection: ICrossConnection);
+procedure TMySQLPacket.Write(const Connection: ICrossConnection);
+
 var
   MemoryStream: TMemoryStream;
 begin
@@ -818,6 +1077,7 @@ end;
 { TBinaryRowDataPacket }
 
 function TBinaryRowDataPacket.CalcPacketSize: Integer;
+
 var
   I: Integer;
   N: Integer;
@@ -871,6 +1131,7 @@ end;
 
 procedure TBinaryRowDataPacket.Convert(FieldValue: TBytes;
   FieldPacket: TFieldPacket);
+
 var
   Bytes: TBytes;
   DateTime: TDateTime;
@@ -1014,8 +1275,9 @@ begin
   Result := 'MySQL Binary RowData Packet';
 end;
 
-procedure TBinaryRowDataPacket.Read(FieldPackets: TList<TFieldPacket>;
-  RowDataPacket: TRowDataPacket);
+procedure TBinaryRowDataPacket.Read(const FieldPackets: TList<TFieldPacket>;
+  const RowDataPacket: TRowDataPacket);
+
 var
   fieldValues: TList<TBytes>;
   FieldValue: TBytes;
@@ -1046,6 +1308,7 @@ begin
 end;
 
 procedure TBinaryRowDataPacket.StoreNullBitMap(I: Integer);
+
 var
   BitMapPos: Integer;
   BitPos: Integer;
@@ -1055,7 +1318,8 @@ begin
   FNullBitMap[BitMapPos] := FNullBitMap[BitMapPos] or (Byte(1 shl BitPos));
 end;
 
-procedure TBinaryRowDataPacket.Write(Stream: TStream);
+procedure TBinaryRowDataPacket.Write(const Stream: TStream);
+
 var
   I: Integer;
   FieldValue: TBytes;
@@ -1094,19 +1358,20 @@ end;
 
 { TRowDataPacket }
 
-procedure TRowDataPacket.Add(Value: TBytes);
+procedure TRowDataPacket.Add(const Value: TBytes);
 begin
   // 这里应该修改value
   FFieldValues.Add(Value);
 end;
 
-procedure TRowDataPacket.AddFieldCount(Add: Integer);
+procedure TRowDataPacket.AddFieldCount(const Add: Integer);
 begin
   // 这里应该修改field
   FFieldCount := FFieldCount + Add;
 end;
 
 function TRowDataPacket.CalcPacketSize: Integer;
+
 var
   I: Integer;
   V: TBytes;
@@ -1126,7 +1391,7 @@ begin
   end;
 end;
 
-constructor TRowDataPacket.Create(FieldCount: Integer);
+constructor TRowDataPacket.Create(const FieldCount: Integer);
 begin
   FFieldCount := FieldCount;
   FFieldValues := TList<TBytes>.Create;
@@ -1137,7 +1402,8 @@ begin
   Result := 'MySQL RowData Packet';
 end;
 
-procedure TRowDataPacket.Read(Data: TBytes);
+procedure TRowDataPacket.Read(const Data: TBytes);
+
 var
   MM: TMySQLMessage;
   I: Integer;
@@ -1152,7 +1418,8 @@ begin
   end;
 end;
 
-procedure TRowDataPacket.Write(Stream: TStream);
+procedure TRowDataPacket.Write(const Stream: TStream);
+
 var
   I: Integer;
   FieldValue: TBytes;
@@ -1190,7 +1457,8 @@ begin
   Result := 'MySQL Command Packet';
 end;
 
-procedure TCommandPacket.Read(Data: TBytes);
+procedure TCommandPacket.Read(const Data: TBytes);
+
 var
   MM: TMySQLMessage;
 begin
@@ -1201,7 +1469,7 @@ begin
   FArg := MM.ReadBytes;
 end;
 
-procedure TCommandPacket.Write(Stream: TStream);
+procedure TCommandPacket.Write(const Stream: TStream);
 begin
   Stream.WriteUB3(CalcPacketSize);
   Stream.WriteData(FPacketId);
@@ -1227,7 +1495,8 @@ begin
   Result := 'MySQL EOF Packet';
 end;
 
-procedure TEOFPacket.Read(Data: TBytes);
+procedure TEOFPacket.Read(const Data: TBytes);
+
 var
   MM: TMySQLMessage;
 begin
@@ -1239,13 +1508,545 @@ begin
   FStatus := MM.ReadUB2;
 end;
 
-procedure TEOFPacket.Write(Stream: TStream);
+procedure TEOFPacket.Write(const Stream: TStream);
 begin
   Stream.WriteUB3(CalcPacketSize);
   Stream.WriteData(FPacketId);
   Stream.WriteData(FFieldCount);
   Stream.WriteUB2(FWarningCount);
   Stream.WriteUB2(FStatus);
+end;
+
+{ TErrorPacket }
+
+function TErrorPacket.CalcPacketSize: Integer;
+begin
+  Result := 1 + 2 + 1 + 5;
+  if Assigned(FMessage) then
+  begin
+    Inc(Result, Length(FMessage));
+  end;
+end;
+
+constructor TErrorPacket.Create;
+begin
+  FFieldCount := FIELD_COUNT;
+  FMark := SQLSTATE_MARKER;
+  FSqlState := DEFAULT_SQLSTATE;
+end;
+
+procedure TErrorPacket.Read(const BinaryPacket: TBinaryPacket);
+
+var
+  MM: TMySQLMessage;
+begin
+  FPacketLength := BinaryPacket.FPacketLength;
+  FPacketId := BinaryPacket.FPacketId;
+  MM := TMySQLMessage.Create(BinaryPacket.FData);
+  FFieldCount := MM.ReadByte;
+  FErrno := MM.ReadUB2;
+  if MM.HasRemaining and (MM.ReadByte(MM.Position) = SQLSTATE_MARKER) then
+  begin
+    MM.ReadByte;
+    FSqlState := MM.ReadBytes(5);
+  end;
+  FMessage := MM.ReadBytes();
+end;
+
+function TErrorPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Error Packet';
+end;
+
+procedure TErrorPacket.Read(const Data: TBytes);
+
+var
+  MM: TMySQLMessage;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3();
+  FPacketId := MM.ReadByte;
+  FFieldCount := MM.ReadByte;
+  FErrno := MM.ReadUB2;
+  if MM.HasRemaining and (MM.ReadByte(MM.Position) = SQLSTATE_MARKER) then
+  begin
+    MM.ReadByte;
+    FSqlState := MM.ReadBytes(5);
+  end;
+  FMessage := MM.ReadBytes();
+end;
+
+procedure TErrorPacket.Write(const Stream: TStream);
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteData(FFieldCount);
+  Stream.WriteUB2(FErrno);
+  Stream.WriteData(FMark);
+  Stream.WriteData(FSqlState);
+  if Assigned(FMessage) then
+  begin
+    Stream.WriteData(FMessage, Length(FMessage));
+  end;
+end;
+
+{ TExecutePacket }
+
+function TExecutePacket.CalcPacketSize: Integer;
+begin
+  Result := 0;
+end;
+
+constructor TExecutePacket.Create(PStmt: TPreparedStatement);
+begin
+  FPStmt := PStmt;
+  SetLength(FValues, PStmt.ParametersNumber);
+end;
+
+function TExecutePacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Execute Packet';
+end;
+
+procedure TExecutePacket.Read(Data: TBytes; Encoding: TEncoding);
+
+var
+  MM: TMySQLMessage;
+  ParameterCount: Integer;
+  I: Integer;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3;
+  FPacketId := MM.ReadByte;
+  FCode := MM.ReadByte;
+  FStatementId := MM.ReadUB4;
+  FFlags := MM.ReadByte;
+  FIterationCount := MM.ReadUB4;
+
+  // 读取NULL指示器数据
+  ParameterCount := Length(FValues);
+  if ParameterCount > 0 then
+  begin
+    SetLength(FNullBitMap, (ParameterCount + 7) div 8);
+    for I := 0 to Length(FNullBitMap) - 1 do
+    begin
+      FNullBitMap[I] := MM.ReadByte;
+    end;
+
+    // 当newParameterBoundFlag==1时，更新参数类型。
+    FNewParameterBoundFlag := MM.ReadByte;
+  end;
+  if FNewParameterBoundFlag = 1 then
+  begin
+    for I := 0 to ParameterCount - 1 do
+    begin
+      FPStmt.ParametersType[I] := MM.ReadUB2;
+    end;
+  end;
+
+  // 设置参数类型和读取参数值
+  for I := 0 to ParameterCount - 1 do
+  begin
+    FValues[I].FType := FPStmt.ParametersType[I];
+    if (FNullBitMap[I div 8] and (1 shl (I and 7))) <> 0 then
+    begin
+      FValues[I].FIsNull := True;
+    end
+    else
+    begin
+      FValues[I].Read(MM, Encoding);
+      if FValues[I].FIsLongData then
+      begin
+        FValues[I].FLongDataBinding := FPStmt.LongData[I];
+      end;
+    end;
+  end;
+end;
+
+{ THandshakePacket }
+
+procedure THandshakePacket.Read(const BinaryPacket: TBinaryPacket);
+
+var
+  MM: TMySQLMessage;
+begin
+  FPacketLength := BinaryPacket.FPacketLength;
+  FPacketId := BinaryPacket.FPacketId;
+  MM := TMySQLMessage.Create(BinaryPacket.FData);
+  FProtocolVersion := MM.ReadByte;
+  FServerVersion := MM.ReadBytesWithNull;
+  FThreadId := MM.ReadUB4;
+  FSeed := MM.ReadBytesWithNull;
+  FServerCapabilities := MM.ReadUB2;
+  FServerCharsetIndex := MM.ReadByte;
+  FServerStatus := MM.ReadUB2;
+  MM.move(13);
+  FRestOfScrambleBuff := MM.ReadBytesWithNull;
+end;
+
+function THandshakePacket.CalcPacketSize: Integer;
+begin
+  Result := 1;
+  Inc(Result, Length(FServerVersion)); // n
+  Inc(Result, 5); // 1+4
+  Inc(Result, Length(FSeed)); // 8
+  Inc(Result, 19); // 1+2+1+2+13
+  Inc(Result, Length(FRestOfScrambleBuff)); // 12
+  Inc(Result, 1); // 1
+end;
+
+function THandshakePacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Handshake Packet';
+end;
+
+procedure THandshakePacket.Read(const Data: TBytes);
+
+var
+  MM: TMySQLMessage;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3;
+  FPacketId := MM.ReadByte;
+  FProtocolVersion := MM.ReadByte;
+  FServerVersion := MM.ReadBytesWithNull;
+  FThreadId := MM.ReadUB4;
+  FSeed := MM.ReadBytesWithNull;
+  FServerCapabilities := MM.ReadUB2;
+  FServerCharsetIndex := MM.ReadByte;
+  FServerStatus := MM.ReadUB2;
+  MM.move(13);
+  FRestOfScrambleBuff := MM.ReadBytesWithNull;
+end;
+
+procedure THandshakePacket.Write(const Stream: TStream);
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteData(FProtocolVersion);
+  Stream.WriteWithNull(FServerVersion);
+  Stream.WriteUB4(FThreadId);
+  Stream.WriteWithNull(FSeed);
+  Stream.WriteUB2(FServerCapabilities);
+  Stream.WriteData(FServerCharsetIndex);
+  Stream.WriteUB2(FServerStatus);
+  Stream.WriteData(FILLER_13);
+  Stream.WriteWithNull(FRestOfScrambleBuff);
+end;
+
+{ THeartbeatPacket }
+
+function THeartbeatPacket.CalcPacketSize: Integer;
+begin
+  Result := 1 + TStream.GetLength(FID);
+end;
+
+function THeartbeatPacket.GetPacketInfo: string;
+begin
+  Result := 'Mycat Heartbeat Packet';
+end;
+
+procedure THeartbeatPacket.Read(const Data: TBytes);
+
+var
+  MM: TMySQLMessage;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3;
+  FPacketId := MM.ReadByte;
+  FCommand := MM.ReadByte;
+  FID := MM.ReadLength;
+end;
+
+procedure THeartbeatPacket.Write(const Stream: TStream);
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteData(FCommand);
+  Stream.WriteLength(FID);
+end;
+
+{ TLongDataPacket }
+
+function TLongDataPacket.CalcPacketSize: Integer;
+begin
+  Result := 1 + 4 + 2 + Length(FLongData);
+end;
+
+function TLongDataPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Long Data Packet';
+end;
+
+procedure TLongDataPacket.Read(const Data: TBytes);
+
+var
+  MM: TMySQLMessage;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3;
+  FPacketId := MM.ReadByte;
+  Assert(MM.ReadByte = PACKET_FALG);
+  FPStmtID := MM.ReadUB4;
+  FParamID := MM.ReadUB2;
+  FLongData := MM.ReadBytes(FPacketLength - (1 + 4 + 2));
+end;
+
+{ TOkPacket }
+
+function TOkPacket.CalcPacketSize: Integer;
+begin
+  Result := 1;
+  Inc(Result, TStream.GetLength(FAffectedRows));
+  Inc(Result, TStream.GetLength(FInsertId));
+  Inc(Result, 4);
+  if Assigned(FMessage) then
+  begin
+    Inc(Result, TStream.GetLength(FMessage));
+  end;
+end;
+
+constructor TOkPacket.Create;
+begin
+  FFieldCount := FIELD_COUNT;
+end;
+
+function TOkPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL OK Packet';
+end;
+
+procedure TOkPacket.Read(const Data: TBytes);
+
+var
+  MM: TMySQLMessage;
+begin
+  MM := TMySQLMessage.Create(Data);
+  FPacketLength := MM.ReadUB3;
+  FPacketId := MM.ReadByte;
+  FFieldCount := MM.ReadByte;
+  FAffectedRows := MM.ReadLength;
+  FInsertId := MM.ReadLength;
+  FServerStatus := MM.ReadUB2;
+  FWarningCount := MM.ReadUB2;
+  if MM.HasRemaining then
+  begin
+    FMessage := MM.ReadBytesWithLength;
+  end;
+end;
+
+procedure TOkPacket.Read(const BinaryPacket: TBinaryPacket);
+
+var
+  MM: TMySQLMessage;
+begin
+  FPacketLength := BinaryPacket.FPacketLength;
+  FPacketId := BinaryPacket.FPacketId;
+  MM := TMySQLMessage.Create(BinaryPacket.FData);
+  FFieldCount := MM.ReadByte;
+  FAffectedRows := MM.ReadLength;
+  FInsertId := MM.ReadLength;
+  FServerStatus := MM.ReadUB2;
+  FWarningCount := MM.ReadUB2;
+  if MM.HasRemaining then
+  begin
+    FMessage := MM.ReadBytesWithLength;
+  end;
+end;
+
+procedure TOkPacket.Write(const Stream: TStream);
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteData(FFieldCount);
+  Stream.WriteLength(FAffectedRows);
+  Stream.WriteLength(FInsertId);
+  Stream.WriteUB2(FServerStatus);
+  Stream.WriteUB2(FWarningCount);
+  if Assigned(FMessage) then
+  begin
+    Stream.WriteWithLength(FMessage);
+  end;
+end;
+
+{ TPingPacket }
+
+function TPingPacket.CalcPacketSize: Integer;
+begin
+  Result := 1;
+end;
+
+function TPingPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Ping Packet';
+end;
+
+{ TPreparedOkPacket }
+
+function TPreparedOkPacket.CalcPacketSize: Integer;
+begin
+  Result := 12;
+end;
+
+constructor TPreparedOkPacket.Create;
+begin
+  FFlag := 0;
+  FFiller := 0;
+end;
+
+function TPreparedOkPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL PreparedOk Packet';
+end;
+
+procedure TPreparedOkPacket.Write(const Stream: TStream);
+begin
+  // int size = ();
+  // buffer = c.checkWriteBuffer(buffer, c.getPacketHeaderSize() + size,writeSocketIfFull);
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteData(FFlag);
+  Stream.WriteUB4(FStatementId);
+  Stream.WriteUB2(FColumnsNumber);
+  Stream.WriteUB2(FParametersNumber);
+  Stream.WriteData(FFiller);
+  Stream.WriteUB2(FWarningCount);
+end;
+
+{ TQuitPacket }
+
+function TQuitPacket.CalcPacketSize: Integer;
+begin
+  Result := 1;
+end;
+
+function TQuitPacket.GetPacketInfo: string;
+begin
+  Result := 'MySQL Quit Packet';
+end;
+
+{ TReply323Packet }
+
+function TReply323Packet.CalcPacketSize: Integer;
+begin
+  if FSeed = nil then
+  begin
+    Result := 1;
+  end
+  else
+  begin
+    Result := Length(FSeed) + 1;
+  end;
+end;
+
+function TReply323Packet.GetPacketInfo: string;
+begin
+  Result := 'MySQL Auth323 Packet';
+end;
+
+procedure TReply323Packet.Write(const Stream: TStream);
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  if FSeed = nil then
+  begin
+    Stream.WriteData(Byte(0));
+  end
+  else
+  begin
+    Stream.WriteWithNull(FSeed);
+  end;
+end;
+
+{ THandshakeV10Packet }
+
+function THandshakeV10Packet.CalcPacketSize: Integer;
+begin
+  Result := 1; // protocol version
+  Inc(Result, Length(FServerVersion) + 1); // server version
+  Inc(Result, 4); // connection id
+  Inc(Result, Length(FSeed));
+  Inc(Result, 1); // [00] filler
+  Inc(Result, 2); // capability flags (lower 2 bytes)
+  Inc(Result, 1); // character set
+  Inc(Result, 2); // status flags
+  Inc(Result, 2); // capability flags (upper 2 bytes)
+  Inc(Result, 1);
+  Inc(Result, 10); // reserved (all [00])
+  if ((serverCapabilities & Capabilities.CLIENT_SECURE_CONNECTION)! = 0) then begin
+    // restOfScrambleBuff.length always to be 12
+    if(restOfScrambleBuff.length <= 13) {
+    size += 13;
+  }
+  else {
+      size += restOfScrambleBuff.length;
+    }
+    }
+  if ((serverCapabilities & Capabilities.CLIENT_PLUGIN_AUTH)! = 0) {
+    size += (authPluginName.length + 1); // auth-plugin name
+  }
+    return size;
+end;
+
+constructor THandshakeV10Packet.Create;
+begin
+  FAuthPluginName := DEFAULT_AUTH_PLUGIN_NAME;
+end;
+
+function THandshakeV10Packet.GetPacketInfo: string;
+begin
+
+end;
+
+procedure THandshakeV10Packet.Write(const Stream: TStream);
+var
+  I: Integer;
+begin
+  Stream.WriteUB3(CalcPacketSize);
+  Stream.WriteData(FPacketId);
+  Stream.WriteData(FProtocolVersion);
+  Stream.WriteWithNull(FServerVersion);
+  Stream.WriteUB4(FThreadId);
+  Stream.WriteData(FSeed, Length(FSeed));
+  Stream.WriteData(Byte(0)); // [00] filler
+  Stream.WriteUB2(FServerCapabilities);
+  // capability flags (lower 2 bytes)
+  Stream.WriteData(FServerCharsetIndex);
+  Stream.WriteUB2(FServerStatus);
+  Stream.WriteUB2(FServerCapabilities shr 16);
+  // capability flags (upper 2 bytes)
+  if (FServerCapabilities and TCapabilities.CLIENT_PLUGIN_AUTH) <> 0 then
+  begin
+    if Length(FRestOfScrambleBuff) <= 13 then
+    begin
+      Stream.WriteData(Byte(Length(FSeed) + 13));
+    end
+    else
+    begin
+      Stream.WriteData(Byte(Length(FSeed) + Length(FRestOfScrambleBuff)));
+    end;
+  end
+  else
+  begin
+    Stream.WriteData(Byte(0));
+  end;
+  Stream.WriteData(FILLER_10);
+  if (FServerCapabilities and TCapabilities.CLIENT_SECURE_CONNECTION) <> 0 then
+  begin
+    Stream.WriteData(FRestOfScrambleBuff);
+    // restOfScrambleBuff.length always to be 12
+    if Length(FRestOfScrambleBuff) < 13 then
+    begin
+      for I := 13 - Length(FRestOfScrambleBuff) downto 1 do
+      begin
+        Stream.WriteData(Byte(0));
+      end;
+    end;
+  end;
+  if (FServerCapabilities and TCapabilities.CLIENT_PLUGIN_AUTH) <> 0 then
+  begin
+    Stream.WriteWithNull(FAuthPluginName);
+  end;
 end;
 
 end.

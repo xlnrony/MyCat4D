@@ -3,7 +3,7 @@ unit MyCat.BackEnd.Mysql;
 interface
 
 uses
-  System.Classes, System.SysUtils, Data.FmtBcd;
+  System.Classes, System.SysUtils, Data.FmtBcd, System.Generics.Collections;
 
 type
   TMySQLMessage = record
@@ -14,15 +14,15 @@ type
     FData: TBytes;
     FPosition: Integer;
   public
-    constructor Create(Data: TBytes);
+    constructor Create(const Data: TBytes);
     function Length: Integer;
     property Position: Integer read FPosition write FPosition;
     function Bytes: TBytes;
-    procedure Move(I: Integer);
+    procedure Move(const I: Integer);
     function HasRemaining: Boolean;
-    function ReadByte(I: Integer): Byte; overload;
+    function ReadByte(const I: Integer): Byte; overload;
     function ReadByte: Byte; overload;
-    function ReadUB2: Integer;
+    function ReadUB2: SmallInt;
     function ReadUB3: Integer;
     function ReadUB4: Int64;
     function ReadInt: Integer;
@@ -31,18 +31,97 @@ type
     function ReadDouble: Double;
     function ReadLength: Int64;
     function ReadBytes: TBytes; overload;
-    function ReadBytes(L: Integer): TBytes; overload;
+    function ReadBytes(const L: Integer): TBytes; overload;
     function ReadBytesWithNull: TBytes;
     function ReadBytesWithLength: TBytes;
     function ReadString: string; overload;
-    function ReadString(Encoding: TEncoding): string; overload;
+    function ReadString(const Encoding: TEncoding): string; overload;
     function ReadStringWithNull: string; overload;
-    function ReadStringWithNull(Encoding: TEncoding): string; overload;
+    function ReadStringWithNull(const Encoding: TEncoding): string; overload;
     function ReadStringWithLength: string; overload;
-    function ReadStringWithLength(Encoding: TEncoding): string; overload;
+    function ReadStringWithLength(const Encoding: TEncoding): string; overload;
     function ReadTime: TTime;
     function ReadDateTime: TDateTime;
     function ReadBCD: TBcd;
+  end;
+
+  TBindValue = record
+  public
+    procedure Read(const MM: TMySQLMessage; const Encoding: TEncoding);
+  public
+    FIsNull: Boolean; // NULL indicator
+    FIsLongData: Boolean; // long data indicator
+    FIsSet: Boolean; // has this parameter been set
+
+    FLength: Int64; // * Default length of data */
+    FScale: Byte;
+
+    FBytesBinging: TBytes;
+    FStringBinding: string;
+
+    case FType: Byte of // * data type */
+      0:
+        (FByteBinding: Byte);
+      1:
+        (FShortBinding: SmallInt);
+      2:
+        (FIntBinding: Integer);
+      3:
+        (FFloatBinding: Single);
+      4:
+        (FLongBinding: Int64);
+      5:
+        (FDoubleBinding: Double);
+      6:
+        (FTimeBinding: TTime);
+      7:
+        (FDateTimeBinding: TDateTime);
+      8:
+        (FBcdBinding: TBcd);
+      9:
+        (FLongDataBinding: TStream);
+  end;
+
+  TPreparedStatement = class
+  private
+    FID: Int64;
+    FStatement: string;
+    FColumnsNumber: Integer;
+    FParametersNumber: Integer;
+    FParametersType: TArray<SmallInt>;
+    // *
+    // * 存放COM_STMT_SEND_LONG_DATA命令发送过来的字节数据
+    // * <pre>
+    // * key : param_id
+    // * value : byte data
+    // * </pre>
+    // *
+    FLongDataMap: TDictionary<Int64, TStream>;
+
+    function GetLongData(ParamID: Int64): TStream;
+  public
+    constructor Create(ID: Int64; Statement: string; ColumnsNumber: Integer;
+      ParametersNumber: Integer);
+    destructor Destroy;
+
+    // *
+    // * COM_STMT_RESET命令将调用该方法进行数据重置
+    // *
+    procedure ResetLongData;
+    // *
+    // * 追加数据到指定的预处理参数
+    // * @param paramId
+    // * @param data
+    // * @throws IOException
+    // *
+    procedure AppendLongData(ParamID: Int64; Data: TBytes);
+
+    property ID: Int64 read FID;
+    property Statement: string read FStatement;
+    property ColumnsNumber: Integer read FColumnsNumber;
+    property ParametersNumber: Integer read FParametersNumber;
+    property ParametersType: TArray<SmallInt> read FParametersType;
+    property LongData[ParamID: Int64]: TStream read GetLongData;
   end;
 
   TStreamHelper = class helper for TStream
@@ -176,7 +255,7 @@ type
 implementation
 
 uses
-  System.DateUtils;
+  System.DateUtils, MyCat.Config;
 
 { TStreamHelper }
 
@@ -187,19 +266,19 @@ begin
   L := Length(Src);
   if L < 251 then
   begin
-    Exit(1 + L);
+    Result := 1 + L;
   end
   else if L < $10000 then
   begin
-    Exit(3 + L);
+    Result := 3 + L;
   end
   else if L < $1000000 then
   begin
-    Exit(4 + L);
+    Result := 4 + L;
   end
   else
   begin
-    Exit(9 + L);
+    Result := 9 + L;
   end;
 end;
 
@@ -336,19 +415,19 @@ class function TStreamHelper.GetLength(L: Int64): Integer;
 begin
   if L < 251 then
   begin
-    Exit(1);
+    Result := 1;
   end
   else if L < $10000 then
   begin
-    Exit(3);
+    Result := 3;
   end
   else if L < $1000000 then
   begin
-    Exit(4);
+    Result := 4;
   end
   else
   begin
-    Exit(9);
+    Result := 9;
   end;
 end;
 
@@ -485,10 +564,10 @@ end;
 
 function TMySQLMessage.Bytes: TBytes;
 begin
-  Exit(FData);
+  Result := FData;
 end;
 
-constructor TMySQLMessage.Create(Data: TBytes);
+constructor TMySQLMessage.Create(const Data: TBytes);
 begin
   FData := Data;
   FPosition := 0;
@@ -504,7 +583,7 @@ begin
   Result := System.Length(FData);
 end;
 
-procedure TMySQLMessage.Move(I: Integer);
+procedure TMySQLMessage.Move(const I: Integer);
 begin
   Inc(FPosition, I);
 end;
@@ -520,7 +599,7 @@ begin
   Result := StrToBcd(ReadStringWithLength);
 end;
 
-function TMySQLMessage.ReadBytes(L: Integer): TBytes;
+function TMySQLMessage.ReadBytes(const L: Integer): TBytes;
 begin
   if FPosition >= (Length - L) then
   begin
@@ -574,8 +653,8 @@ begin
       end;
     0:
       begin
+        Result := EMPTY_BYTES;
         Inc(FPosition);
-        Exit(EMPTY_BYTES);
       end;
   else
     begin
@@ -719,7 +798,7 @@ begin
   Inc(FPosition);
 end;
 
-function TMySQLMessage.ReadString(Encoding: TEncoding): string;
+function TMySQLMessage.ReadString(const Encoding: TEncoding): string;
 begin
   if FPosition >= Length then
   begin
@@ -742,7 +821,7 @@ begin
   Inc(FPosition, L);
 end;
 
-function TMySQLMessage.ReadStringWithLength(Encoding: TEncoding): string;
+function TMySQLMessage.ReadStringWithLength(const Encoding: TEncoding): string;
 var
   L: Integer;
 begin
@@ -755,7 +834,7 @@ begin
   Inc(FPosition, L);
 end;
 
-function TMySQLMessage.ReadStringWithNull(Encoding: TEncoding): string;
+function TMySQLMessage.ReadStringWithNull(const Encoding: TEncoding): string;
 var
   Offset: Integer;
   I: Integer;
@@ -785,8 +864,8 @@ begin
   end
   else
   begin
+    Result := '';
     Inc(FPosition);
-    Exit('');
   end;
 end;
 
@@ -834,8 +913,8 @@ begin
   end
   else
   begin
+    Result := '';
     Inc(FPosition);
-    Exit('');
   end;
 end;
 
@@ -849,7 +928,7 @@ begin
   FPosition := Length;
 end;
 
-function TMySQLMessage.ReadUB2: Integer;
+function TMySQLMessage.ReadUB2: SmallInt;
 begin
   Result := FData[FPosition] and $FF;
   Inc(FPosition);
@@ -879,9 +958,125 @@ begin
   Inc(FPosition);
 end;
 
-function TMySQLMessage.ReadByte(I: Integer): Byte;
+function TMySQLMessage.ReadByte(const I: Integer): Byte;
 begin
   Result := FData[I];
+end;
+
+{ TPreparedStatement }
+
+procedure TPreparedStatement.AppendLongData(ParamID: Int64; Data: TBytes);
+var
+  ByteStream: TBytesStream;
+begin
+  if GetLongData(ParamID) = nil then
+  begin
+    ByteStream := TBytesStream.Create(Data);
+    FLongDataMap.Add(ParamID, ByteStream);
+  end
+  else
+  begin
+    FLongDataMap[ParamID].WriteData(Data, Length(Data));
+  end;
+end;
+
+constructor TPreparedStatement.Create(ID: Int64; Statement: string;
+  ColumnsNumber, ParametersNumber: Integer);
+begin
+  FID := ID;
+  FStatement := Statement;
+  FColumnsNumber := ColumnsNumber;
+  FParametersNumber := ParametersNumber;
+  SetLength(FParametersType, ParametersNumber);
+  FLongDataMap := TDictionary<Int64, TStream>.Create;
+end;
+
+destructor TPreparedStatement.Destroy;
+begin
+  FLongDataMap.Free;
+end;
+
+function TPreparedStatement.GetLongData(ParamID: Int64): TStream;
+begin
+  Result := FLongDataMap[ParamID];
+end;
+
+procedure TPreparedStatement.ResetLongData;
+var
+  Stream: TStream;
+begin
+  for Stream in FLongDataMap.Values do
+  begin
+    Stream.Position := 0;
+  end;
+end;
+
+{ TBindValue }
+
+procedure TBindValue.Read(const MM: TMySQLMessage; const Encoding: TEncoding);
+begin
+  case FType of
+    TFields.FIELD_TYPE_BIT:
+      begin
+        FBytesBinging := MM.ReadBytesWithLength;
+      end;
+    TFields.FIELD_TYPE_TINY:
+      begin
+        FByteBinding := MM.ReadByte;
+      end;
+    TFields.FIELD_TYPE_SHORT:
+      begin
+        FShortBinding := MM.ReadUB2;
+      end;
+    TFields.FIELD_TYPE_LONG:
+      begin
+        FIntBinding := MM.ReadInt;
+      end;
+    TFields.FIELD_TYPE_LONGLONG:
+      begin
+        FLongBinding := MM.ReadLong;
+      end;
+    TFields.FIELD_TYPE_FLOAT:
+      begin
+        FFloatBinding := MM.ReadFloat;
+      end;
+    TFields.FIELD_TYPE_DOUBLE:
+      begin
+        FDoubleBinding := MM.ReadDouble;
+      end;
+    TFields.FIELD_TYPE_TIME:
+      begin
+        FTimeBinding := MM.ReadTime;
+      end;
+    TFields.FIELD_TYPE_DATE, TFields.FIELD_TYPE_DATETIME,
+      TFields.FIELD_TYPE_TIMESTAMP:
+      begin
+        FDateTimeBinding := MM.ReadDateTime;
+      end;
+    TFields.FIELD_TYPE_VAR_STRING, TFields.FIELD_TYPE_STRING,
+      TFields.FIELD_TYPE_VARCHAR:
+      begin
+        FStringBinding := MM.ReadStringWithLength(Encoding);
+      end;
+    TFields.FIELD_TYPE_DECIMAL, TFields.FIELD_TYPE_NEW_DECIMAL:
+      begin
+        FBcdBinding := MM.ReadBCD;
+        // if (bv.value = = null) then
+        // begin
+        // bv.isNull = true;
+        // end;
+      end;
+    TFields.FIELD_TYPE_BLOB:
+      begin
+        FIsLongData := True;
+      end;
+  else
+    begin
+      raise Exception.CreateFmt
+        ('bindValue error, unsupported type: %d', [FType]);
+    end;
+  end;
+  FIsSet := True;
 end;
 
 end.
