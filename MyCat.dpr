@@ -15,7 +15,11 @@ uses
   MyCat.BackEnd.Mysql.CrossSocket in 'MyCat.BackEnd.Mysql.CrossSocket.pas',
   MyCat.Config in 'MyCat.Config.pas',
   MyCat.Util in 'MyCat.Util.pas',
-  MyCat.Config.Model in 'MyCat.Config.Model.pas';
+  MyCat.Config.Model in 'MyCat.Config.Model.pas',
+  Mycat.SQLEngine in 'Mycat.SQLEngine.pas',
+  System.Generics.Collections.ThreadSafe in 'System.Generics.Collections.ThreadSafe.pas',
+  MyCat.BackEnd.Mysql.CrossSocket.Handler in 'MyCat.BackEnd.Mysql.CrossSocket.Handler.pas',
+  MyCat.BackEnd.DataSource in 'MyCat.BackEnd.DataSource.pas';
 
 begin
   try
