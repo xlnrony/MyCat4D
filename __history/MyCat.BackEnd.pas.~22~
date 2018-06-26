@@ -3,7 +3,7 @@ unit MyCat.BackEnd;
 interface
 
 uses
-  System.Generics.DataStruct, Net.CrossSocket.Base;
+  System.Generics.Collections, Net.CrossSocket.Base;
 
 type
   IBackEndConnection = interface(ICrossConnection)
@@ -47,9 +47,6 @@ type
     constructor Create;
 
     function TakeIdleCon(AutoCommit: Boolean): ICrossConnection;
-    function GetExecuteCount: Int64;
-    procedure IncExecuteCount;
-    function RemoveConnection(Connection: ICrossConnection): Boolean;
   end;
   // public class ConQueue {
   //
@@ -57,12 +54,19 @@ type
   // }
   //
   // public long getExecuteCount() {
+  // return executeCount;
   // }
   //
   // public void incExecuteCount() {
+  // this.executeCount++;
   // }
   //
   // public boolean removeCon(BackendConnection con) {
+  // boolean removed = autoCommitCons.remove(con);
+  // if (!removed) {
+  // return manCommitCons.remove(con);
+  // }
+  // return removed;
   // }
   //
   // public boolean isSameCon(BackendConnection con) {
@@ -241,25 +245,6 @@ begin
   FManCommitCons := TThreadedQueue<ICrossConnection>.Create;
 end;
 
-function TConQueue.GetExecuteCount: Int64;
-begin
-  Result := FExecuteCount;
-end;
-
-procedure TConQueue.IncExecuteCount;
-begin
-  Inc(FExecuteCount);
-end;
-
-function TConQueue.RemoveConnection(Connection: ICrossConnection): Boolean;
-begin
-  Result := FAutoCommitCons.remove(Connection);
-  if not Result then
-  begin
-    Result := FManCommitCons.remove(con);
-  end;
-end;
-
 function TConQueue.TakeIdleCon(AutoCommit: Boolean): ICrossConnection;
 var
   Queue1: TThreadedQueue<ICrossConnection>;
@@ -280,10 +265,15 @@ begin
   begin
     Result := Queue2.PopItem;
   end;
-  if Result.ConnectStatus in [csDisconnected, csClosed] then
+  if (Result = nil) or (Result.ConnectStatus in [csDisconnected, csClosed]) then
   begin
-    Result := nil;
+    return null;
+  end
+  else
+  begin
+    return con;
   end;
+
 end;
 
 end.

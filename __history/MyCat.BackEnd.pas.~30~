@@ -3,7 +3,7 @@ unit MyCat.BackEnd;
 interface
 
 uses
-  System.Generics.DataStruct, Net.CrossSocket.Base;
+  System.Generics.Collections, Net.CrossSocket.Base;
 
 type
   IBackEndConnection = interface(ICrossConnection)

@@ -2,165 +2,49 @@ unit MyCat.Config.Model;
 
 interface
 
-type
-  TDBHostConfig = class
-  private
-    FIdleTimeout: long = SystemConfig.DEFAULT_IDLE_TIMEOUT; // 连接池中连接空闲超时时间
-    FHostName: string;
-    FIP: String;
-    FPort: Integer;
-    FUrl: String;
-    FUser: String;
-    FPassWord: String;
-    FEncryptPassWord: String; // 密文
-    FMaxConn: Integer;
-    FMinConn: Integer;
-    FDBType: string;
-    FFilters: String = 'MergeStat';
-    FLogTime: int64 = 300000;
-    FWeight: Integer;
-  public
-    constructor Create(HostName: string; IP: string; Port: Integer; Url: string;
-      User: String; PassWord: String; EncryptPassWord: String);
-  end;
+uses
+  System.SysUtils;
 
-  // public class DBHostConfig {
-  //
-  //
-  // public String getDbType() {
-  // return dbType;
-  // }
-  //
-  // public void setDbType(String dbType) {
-  // this.dbType = dbType;
-  // }
-  //
-  // public DBHostConfig() {
-  // super();
-  // this.hostName = hostName;
-  // this.ip = ip;
-  // this.port = port;
-  // this.url = url;
-  // this.user = user;
-  // this.password = password;
-  // this.encryptPassword = encryptPassword;
-  // }
-  //
-  // public long getIdleTimeout() {
-  // return idleTimeout;
-  // }
-  //
-  // public void setIdleTimeout(long idleTimeout) {
-  // this.idleTimeout = idleTimeout;
-  // }
-  //
-  // public int getMaxCon() {
-  // return maxCon;
-  // }
-  //
-  // public void setMaxCon(int maxCon) {
-  // this.maxCon = maxCon;
-  // }
-  //
-  // public int getMinCon() {
-  // return minCon;
-  // }
-  //
-  // public void setMinCon(int minCon) {
-  // this.minCon = minCon;
-  // }
-  //
-  // public String getHostName() {
-  // return hostName;
-  // }
-  //
-  // public String getIp() {
-  // return ip;
-  // }
-  //
-  // public int getPort() {
-  // return port;
-  // }
-  //
-  // public String getUrl() {
-  // return url;
-  // }
-  //
-  // public String getUser() {
-  // return user;
-  // }
-  // public String getFilters() {
-  // return filters;
-  // }
-  //
-  // public void setFilters(String filters) {
-  // this.filters = filters;
-  // }
-  // public String getPassword() {
-  // return password;
-  // }
-  //
-  // public long getLogTime() {
-  // return logTime;
-  // }
-  //
-  // public void setLogTime(long logTime) {
-  // this.logTime = logTime;
-  // }
-  //
-  // public int getWeight() {
-  // return weight;
-  // }
-  //
-  // public void setWeight(int weight) {
-  // this.weight = weight;
-  // }
-  //
-  // public String getEncryptPassword() {
-  // return this.encryptPassword;
-  // }
-  //
-  // @Override
-  // public String toString() {
-  // return "DBHostConfig [hostName=" + hostName + ", url=" + url + "]";
-  // }
-  //
-  // }
+type
   // *
   // * 系统基础配置项
   // *
   TSystemConfig = class
+  private const
+    DEFAULT_PORT: Integer = 8066;
+    DEFAULT_MANAGER_PORT: Integer = 9066;
+    DEFAULT_SQL_PARSER: string = 'druidparser';
+    DEFAULT_BUFFER_CHUNK_SIZE: SmallInt = 4096;
+    DEFAULT_BUFFER_POOL_PAGE_SIZE: Integer = 512 * 1024 * 4;
+    DEFAULT_BUFFER_POOL_PAGE_NUMBER: SmallInt = 64;
+    RESERVED_SYSTEM_MEMORY_BYTES: string = '384m';
+    MEMORY_PAGE_SIZE: string = '1m';
+    SPILLS_FILE_BUFFER_SIZE: string = '2K';
+    DATANODE_SORTED_TEMP_DIR: string = 'datanode';
+    // private int frontSocketSoRcvbuf = 1024 * 1024;
+    // private int frontSocketSoSndbuf = 4 * 1024 * 1024;
+    // private int backSocketSoRcvbuf = 4 * 1024 * 1024;// mysql 5.6
   private
+    class var DEFAULT_CHARSET: TEncoding = TEncoding.UTF8;
+    class var DEFAULT_PROCESSORS: Integer = getcpunums();
 
+  public
+    // public static final String SYS_HOME = "MYCAT_HOME";
+    // public static final int DEFAULT_POOL_SIZE = 128;// 保持后端数据通道的默认最大值
+    // public static final long DEFAULT_IDLE_TIMEOUT = 30 * 60 * 1000L;
+
+    class constructor Create;
   end;
+
   // public final class SystemConfig {
   //
-  // public static final String SYS_HOME = "MYCAT_HOME";
-  // private static final int DEFAULT_PORT = 8066;
-  // private static final int DEFAULT_MANAGER_PORT = 9066;
-  // private static final String DEFAULT_CHARSET = "utf8";
-  //
-  // private static final String DEFAULT_SQL_PARSER = "druidparser";// fdbparser, druidparser
-  // private static final short DEFAULT_BUFFER_CHUNK_SIZE = 4096;
-  // private static final int DEFAULT_BUFFER_POOL_PAGE_SIZE = 512*1024*4;
-  // private static final short DEFAULT_BUFFER_POOL_PAGE_NUMBER = 64;
   // private int processorBufferLocalPercent;
-  // private static final int DEFAULT_PROCESSORS = Runtime.getRuntime().availableProcessors();
-  // private int frontSocketSoRcvbuf = 1024 * 1024;
-  // private int frontSocketSoSndbuf = 4 * 1024 * 1024;
-  // private int backSocketSoRcvbuf = 4 * 1024 * 1024;// mysql 5.6
   // // net_buffer_length
   // // defaut 4M
   //
-  // private final  static String RESERVED_SYSTEM_MEMORY_BYTES = "384m";
-  // private final static String MEMORY_PAGE_SIZE = "1m";
-  // private final static String SPILLS_FILE_BUFFER_SIZE = "2K";
-  // private final static String DATANODE_SORTED_TEMP_DIR = "datanode";
   // private int backSocketSoSndbuf = 1024 * 1024;
   // private int frontSocketNoDelay = 1; // 0=false
   // private int backSocketNoDelay = 1; // 1=true
-  // public static final int DEFAULT_POOL_SIZE = 128;// 保持后端数据通道的默认最大值
-  // public static final long DEFAULT_IDLE_TIMEOUT = 30 * 60 * 1000L;
   // private static final long DEFAULT_PROCESSOR_CHECK_PERIOD = 1 * 1000L;
   // private static final long DEFAULT_DATANODE_IDLE_CHECK_PERIOD = 5 * 60 * 1000L;
   // private static final long DEFAULT_DATANODE_HEARTBEAT_PERIOD = 10 * 1000L;
@@ -1058,7 +942,148 @@ type
   //
   //
   // }
+  TDBHostConfig = class
+  private
+    FIdleTimeout: long = SystemConfig.DEFAULT_IDLE_TIMEOUT; // 连接池中连接空闲超时时间
+    FHostName: string;
+    FIP: String;
+    FPort: Integer;
+    FUrl: String;
+    FUser: String;
+    FPassWord: String;
+    FEncryptPassWord: String; // 密文
+    FMaxConn: Integer;
+    FMinConn: Integer;
+    FDBType: string;
+    FFilters: String = 'MergeStat';
+    FLogTime: int64 = 300000;
+    FWeight: Integer;
+  public
+    constructor Create(HostName: string; IP: string; Port: Integer; Url: string;
+      User: String; PassWord: String; EncryptPassWord: String);
+  end;
+
+  // public class DBHostConfig {
+  //
+  //
+  // public String getDbType() {
+  // return dbType;
+  // }
+  //
+  // public void setDbType(String dbType) {
+  // this.dbType = dbType;
+  // }
+  //
+  // public DBHostConfig() {
+  // super();
+  // this.hostName = hostName;
+  // this.ip = ip;
+  // this.port = port;
+  // this.url = url;
+  // this.user = user;
+  // this.password = password;
+  // this.encryptPassword = encryptPassword;
+  // }
+  //
+  // public long getIdleTimeout() {
+  // return idleTimeout;
+  // }
+  //
+  // public void setIdleTimeout(long idleTimeout) {
+  // this.idleTimeout = idleTimeout;
+  // }
+  //
+  // public int getMaxCon() {
+  // return maxCon;
+  // }
+  //
+  // public void setMaxCon(int maxCon) {
+  // this.maxCon = maxCon;
+  // }
+  //
+  // public int getMinCon() {
+  // return minCon;
+  // }
+  //
+  // public void setMinCon(int minCon) {
+  // this.minCon = minCon;
+  // }
+  //
+  // public String getHostName() {
+  // return hostName;
+  // }
+  //
+  // public String getIp() {
+  // return ip;
+  // }
+  //
+  // public int getPort() {
+  // return port;
+  // }
+  //
+  // public String getUrl() {
+  // return url;
+  // }
+  //
+  // public String getUser() {
+  // return user;
+  // }
+  // public String getFilters() {
+  // return filters;
+  // }
+  //
+  // public void setFilters(String filters) {
+  // this.filters = filters;
+  // }
+  // public String getPassword() {
+  // return password;
+  // }
+  //
+  // public long getLogTime() {
+  // return logTime;
+  // }
+  //
+  // public void setLogTime(long logTime) {
+  // this.logTime = logTime;
+  // }
+  //
+  // public int getWeight() {
+  // return weight;
+  // }
+  //
+  // public void setWeight(int weight) {
+  // this.weight = weight;
+  // }
+  //
+  // public String getEncryptPassword() {
+  // return this.encryptPassword;
+  // }
+  //
+  // @Override
+  // public String toString() {
+  // return "DBHostConfig [hostName=" + hostName + ", url=" + url + "]";
+  // }
+  //
+  // }
 
 implementation
+
+{ TDBHostConfig }
+
+constructor TDBHostConfig.Create(HostName, IP: string; Port: Integer;
+  Url, User, PassWord, EncryptPassWord: String);
+begin
+  FIdleTimeout := SystemConfig.DEFAULT_IDLE_TIMEOUT; // 连接池中连接空闲超时时间
+  FFilters := 'MergeStat';
+  FLogTime := 300000;
+
+end;
+
+{ TSystemConfig }
+
+constructor TSystemConfig.Create;
+begin
+
+end;
 
 end.

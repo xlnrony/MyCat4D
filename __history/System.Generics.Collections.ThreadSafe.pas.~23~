@@ -11,22 +11,23 @@ type
     FDictionary: TDictionary<TKey, TValue>;
     FLock: TObject;
 
-    procedure Lock;
-    procedure Unlock;
+    procedure Lock; inline;
+    procedure Unlock; inline;
 
-    function GetItem(const Key: TKey): TValue;
-    procedure SetItem(const Key: TKey; const Value: TValue);
+    function GetItem(const Key: TKey): TValue; inline;
+    procedure SetItem(const Key: TKey; const Value: TValue); inline;
   public
-    procedure Add(const Key: TKey; const Value: TValue);
-    procedure AddOrSetValue(const Key: TKey; const Value: TValue);
-    procedure Remove(const Key: TKey);
-    procedure Clear;
+    procedure Add(const Key: TKey; const Value: TValue); inline;
+    procedure AddOrSetValue(const Key: TKey; const Value: TValue); inline;
+    procedure Remove(const Key: TKey); inline;
+    procedure Clear; inline;
 
     // vvv Non-blocking methods vvv
-    function TryGetValue(const Key: TKey; out Value: TValue): Boolean;
-    function ContainsKey(const Key: TKey): Boolean;
-    function ContainsValue(const Value: TValue): Boolean;
-    function Count: Integer;
+    function TryGetValue(const Key: TKey; out Value: TValue): Boolean; inline;
+    function ContainsKey(const Key: TKey): Boolean; inline;
+    function ContainsValue(const Value: TValue): Boolean; inline;
+    function Count: Integer; inline;
+
     property Items[const Key: TKey]: TValue read GetItem write SetItem; default;
 
     constructor Create;
@@ -105,7 +106,7 @@ end;
 
 function TThreadDictionary<TKey, TValue>.GetItem(const Key: TKey): TValue;
 begin
-
+  Result := FDictionary[Key];
 end;
 
 procedure TThreadDictionary<TKey, TValue>.Lock;
@@ -142,7 +143,7 @@ end;
 
 procedure TThreadDictionary<TKey, TValue>.Unlock;
 begin
-
+  TMonitor.Exit(FLock);
 end;
 
 end.

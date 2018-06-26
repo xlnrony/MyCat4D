@@ -2,9 +2,6 @@ unit MyCat.BackEnd.DataSource;
 
 interface
 
-uses
-  MyCat.Config.Model;
-
 type
   TPhysicalDatasource = class
   private
@@ -26,7 +23,7 @@ type
     // Ìí¼ÓDataSourceÐ´¼ÆÊý
     FWriteCount: Int64; // = new AtomicLong(0);
   public
-    constructor Create(Config: TDBHostConfig, hostConfig: TDataHostConfig,
+    constructor Create(config: TDBHostConfig, hostConfig: TDataHostConfig,
       isReadNode: Boolean);
   end;
   // public abstract class PhysicalDatasource {

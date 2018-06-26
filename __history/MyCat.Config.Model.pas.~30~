@@ -2,36 +2,38 @@ unit MyCat.Config.Model;
 
 interface
 
+uses
+  System.SysUtils;
+
 type
   // *
   // * 系统基础配置项
   // *
   TSystemConfig = class
   private const
-  private
-    static final int DEFAULT_PORT = 8066;
-    // private static final int DEFAULT_MANAGER_PORT = 9066;
-    // private static final String DEFAULT_CHARSET = "utf8";
-    //
-    // private static final String DEFAULT_SQL_PARSER = "druidparser";// fdbparser, druidparser
-    // private static final short DEFAULT_BUFFER_CHUNK_SIZE = 4096;
-    // private static final int DEFAULT_BUFFER_POOL_PAGE_SIZE = 512*1024*4;
-    // private static final short DEFAULT_BUFFER_POOL_PAGE_NUMBER = 64;
-
-    // private static final int DEFAULT_PROCESSORS = Runtime.getRuntime().availableProcessors();
-    // private final  static String RESERVED_SYSTEM_MEMORY_BYTES = "384m";
-    // private final static String MEMORY_PAGE_SIZE = "1m";
-    // private final static String SPILLS_FILE_BUFFER_SIZE = "2K";
-    // private final static String DATANODE_SORTED_TEMP_DIR = "datanode";
-  private
+    DEFAULT_PORT: Integer = 8066;
+    DEFAULT_MANAGER_PORT: Integer = 9066;
+    DEFAULT_SQL_PARSER: string = 'druidparser';
+    DEFAULT_BUFFER_CHUNK_SIZE: SmallInt = 4096;
+    DEFAULT_BUFFER_POOL_PAGE_SIZE: Integer = 512 * 1024 * 4;
+    DEFAULT_BUFFER_POOL_PAGE_NUMBER: SmallInt = 64;
+    RESERVED_SYSTEM_MEMORY_BYTES: string = '384m';
+    MEMORY_PAGE_SIZE: string = '1m';
+    SPILLS_FILE_BUFFER_SIZE: string = '2K';
+    DATANODE_SORTED_TEMP_DIR: string = 'datanode';
     // private int frontSocketSoRcvbuf = 1024 * 1024;
     // private int frontSocketSoSndbuf = 4 * 1024 * 1024;
     // private int backSocketSoRcvbuf = 4 * 1024 * 1024;// mysql 5.6
+  private
+    class var DEFAULT_CHARSET: TEncoding;
+    class var DEFAULT_PROCESSORS: Integer;
 
+  public const
+    SYS_HOME: string = 'MYCAT_HOME';
+    DEFAULT_POOL_SIZE: Integer = 128; // 保持后端数据通道的默认最大值
+    DEFAULT_IDLE_TIMEOUT: Int64 = 30 * 60 * 1000;
   public
-    // public static final String SYS_HOME = "MYCAT_HOME";
-    // public static final int DEFAULT_POOL_SIZE = 128;// 保持后端数据通道的默认最大值
-    // public static final long DEFAULT_IDLE_TIMEOUT = 30 * 60 * 1000L;
+    class constructor Create;
   end;
 
   // public final class SystemConfig {
@@ -942,7 +944,7 @@ type
   // }
   TDBHostConfig = class
   private
-    FIdleTimeout: long = SystemConfig.DEFAULT_IDLE_TIMEOUT; // 连接池中连接空闲超时时间
+    FIdleTimeout: Int64; // 连接池中连接空闲超时时间
     FHostName: string;
     FIP: String;
     FPort: Integer;
@@ -953,8 +955,8 @@ type
     FMaxConn: Integer;
     FMinConn: Integer;
     FDBType: string;
-    FFilters: String = 'MergeStat';
-    FLogTime: int64 = 300000;
+    FFilters: String;
+    FLogTime: Int64;
     FWeight: Integer;
   public
     constructor Create(HostName: string; IP: string; Port: Integer; Url: string;
@@ -1075,6 +1077,14 @@ begin
   FFilters := 'MergeStat';
   FLogTime := 300000;
 
+end;
+
+{ TSystemConfig }
+
+class constructor TSystemConfig.Create;
+begin
+  DEFAULT_CHARSET := TEncoding.UTF8;
+  DEFAULT_PROCESSORS := CPUCount;
 end;
 
 end.
