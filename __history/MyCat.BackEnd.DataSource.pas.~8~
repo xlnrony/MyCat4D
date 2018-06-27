@@ -3,7 +3,7 @@ unit MyCat.BackEnd.DataSource;
 interface
 
 uses
-  MyCat.Config.Model,MyCat.BackEnd, MyCat.BackEnd.HeartBeat;
+  MyCat.Config.Model;
 
 type
   TPhysicalDatasource = class
@@ -11,8 +11,8 @@ type
     FName: String;
     FSize: Integer;
     FConfig: TDBHostConfig;
-    FConMap: TConMap ;
-    FHeartbeat: TDBHeartbeat;
+    FConMap: TConMap = new ConMap();
+    FHeartbeat: DBHeartbeat;
     FReadNode: Boolean;
     FHeartbeatRecoveryTime: Int64;
     FHostConfig: TDataHostConfig;
@@ -29,8 +29,6 @@ type
     constructor Create(Config: TDBHostConfig, hostConfig: TDataHostConfig,
       isReadNode: Boolean);
   end;
-//  = new ConMap();
-
   // public abstract class PhysicalDatasource {
   //
   // private static final Logger LOGGER = LoggerFactory.getLogger(PhysicalDatasource.class);

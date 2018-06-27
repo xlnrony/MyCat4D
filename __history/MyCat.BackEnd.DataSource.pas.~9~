@@ -3,7 +3,7 @@ unit MyCat.BackEnd.DataSource;
 interface
 
 uses
-  MyCat.Config.Model,MyCat.BackEnd, MyCat.BackEnd.HeartBeat;
+  MyCat.Config.Model,MyCat.BackEnd;
 
 type
   TPhysicalDatasource = class

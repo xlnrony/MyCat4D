@@ -15,12 +15,12 @@ uses
   MyCat.Util in 'MyCat.Util.pas',
   MyCat.Config.Model in 'MyCat.Config.Model.pas',
   Mycat.SQLEngine in 'Mycat.SQLEngine.pas',
+  System.Generics.Collections.ThreadSafe in 'System.Generics.Collections.ThreadSafe.pas',
   MyCat.BackEnd.Mysql.CrossSocket.Handler in 'MyCat.BackEnd.Mysql.CrossSocket.Handler.pas',
   MyCat.BackEnd.DataSource in 'MyCat.BackEnd.DataSource.pas',
   Net.CrossSocket in 'CrossSocket\Net.CrossSocket.pas',
   Net.CrossSocket.Base in 'CrossSocket\Net.CrossSocket.Base.pas',
-  DSTL.STL.Queues in 'DSTL\DSTL.STL.Queues.pas',
-  MyCat.BackEnd.HeartBeat in 'MyCat.BackEnd.HeartBeat.pas';
+  DSTL.STL.Queues in 'DSTL\DSTL.STL.Queues.pas';
 
 begin
   try

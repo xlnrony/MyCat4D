@@ -3,7 +3,7 @@ unit MyCat.BackEnd;
 interface
 
 uses
-  System.Generics.DataStruct, Net.CrossSocket.Base;
+  DSTL.STL.Queues, Net.CrossSocket.Base;
 
 type
   IBackEndConnection = interface(ICrossConnection)
@@ -256,7 +256,7 @@ begin
   Result := FAutoCommitCons.remove(Connection);
   if not Result then
   begin
-    Result := FManCommitCons.remove(con);
+    Result := FManCommitCons.remove(Connection);
   end;
 end;
 
@@ -275,10 +275,12 @@ begin
     Queue1 := FManCommitCons;
     Queue2 := FAutoCommitCons;
   end;
-  Result := Queue1.PopItem;
+  Result := Queue1.Front;
+  Queue1.Pop;
   if (Result = nil) or (Result.ConnectStatus in [csDisconnected, csClosed]) then
   begin
-    Result := Queue2.PopItem;
+    Result := Queue2.Front;
+    Queue2.Pop;
   end;
   if Result.ConnectStatus in [csDisconnected, csClosed] then
   begin

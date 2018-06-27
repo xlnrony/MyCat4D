@@ -94,6 +94,9 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
+        <DCC_UnitSearchPath>.\CrossSocket;.\DSTL;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <Manifest_File>(None)</Manifest_File>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -108,18 +111,18 @@
         <DCCReference Include="MyCat.Net.Mysql.pas"/>
         <DCCReference Include="MyCat.BackEnd.Mysql.pas"/>
         <DCCReference Include="MyCat.BackEnd.pas"/>
-        <DCCReference Include="Net.CrossSocket.Base.pas"/>
         <DCCReference Include="MyCat.Net.pas"/>
-        <DCCReference Include="Net.CrossSocket.pas"/>
         <DCCReference Include="MyCat.BackEnd.Mysql.CrossSocket.pas"/>
         <DCCReference Include="MyCat.Config.pas"/>
         <DCCReference Include="MyCat.Util.pas"/>
         <DCCReference Include="MyCat.Config.Model.pas"/>
         <DCCReference Include="Mycat.SQLEngine.pas"/>
-        <DCCReference Include="System.Generics.Collections.ThreadSafe.pas"/>
         <DCCReference Include="MyCat.BackEnd.Mysql.CrossSocket.Handler.pas"/>
         <DCCReference Include="MyCat.BackEnd.DataSource.pas"/>
-        <DCCReference Include="System.Generics.DataStruct.pas"/>
+        <DCCReference Include="CrossSocket\Net.CrossSocket.pas"/>
+        <DCCReference Include="CrossSocket\Net.CrossSocket.Base.pas"/>
+        <DCCReference Include="DSTL\DSTL.STL.Queues.pas"/>
+        <DCCReference Include="MyCat.BackEnd.HeartBeat.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -140,6 +143,10 @@
                 <Source>
                     <Source Name="MainSource">MyCat.dpr</Source>
                 </Source>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k250.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp250.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">

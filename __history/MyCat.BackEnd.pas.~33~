@@ -3,7 +3,7 @@ unit MyCat.BackEnd;
 interface
 
 uses
-  System.Generics.Collections, Net.CrossSocket.Base;
+  DSTL.STL.Queues, Net.CrossSocket.Base;
 
 type
   IBackEndConnection = interface(ICrossConnection)
@@ -48,6 +48,8 @@ type
 
     function TakeIdleCon(AutoCommit: Boolean): ICrossConnection;
     function GetExecuteCount: Int64;
+    procedure IncExecuteCount;
+    function RemoveConnection(Connection: ICrossConnection): Boolean;
   end;
   // public class ConQueue {
   //
@@ -58,15 +60,9 @@ type
   // }
   //
   // public void incExecuteCount() {
-  // this.executeCount++;
   // }
   //
   // public boolean removeCon(BackendConnection con) {
-  // boolean removed = autoCommitCons.remove(con);
-  // if (!removed) {
-  // return manCommitCons.remove(con);
-  // }
-  // return removed;
   // }
   //
   // public boolean isSameCon(BackendConnection con) {
@@ -248,6 +244,20 @@ end;
 function TConQueue.GetExecuteCount: Int64;
 begin
   Result := FExecuteCount;
+end;
+
+procedure TConQueue.IncExecuteCount;
+begin
+  Inc(FExecuteCount);
+end;
+
+function TConQueue.RemoveConnection(Connection: ICrossConnection): Boolean;
+begin
+  Result := FAutoCommitCons.remove(Connection);
+  if not Result then
+  begin
+    Result := FManCommitCons.remove(con);
+  end;
 end;
 
 function TConQueue.TakeIdleCon(AutoCommit: Boolean): ICrossConnection;
