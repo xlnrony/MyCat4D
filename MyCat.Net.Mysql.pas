@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes, System.SysUtils, System.Generics.Collections,
-  Net.CrossSocket.Base, MyCat.BackEnd.Mysql;
+  MyCat.Net.CrossSocket.Base, MyCat.BackEnd.Mysql;
 
 type
   TMySQLPacket = class

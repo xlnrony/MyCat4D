@@ -1,0 +1,35 @@
+program MyCat;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  Net.CrossSocket in 'CrossSocket\Net.CrossSocket.pas',
+  Net.CrossSocket.Base in 'CrossSocket\Net.CrossSocket.Base.pas',
+  MyCat.BackEnd.DataSource in 'MyCat\MyCat.BackEnd.DataSource.pas',
+  MyCat.BackEnd.HeartBeat in 'MyCat\MyCat.BackEnd.HeartBeat.pas',
+  MyCat.BackEnd.Mysql.CrossSocket.Handler in 'MyCat\MyCat.BackEnd.Mysql.CrossSocket.Handler.pas',
+  MyCat.BackEnd.Mysql.CrossSocket in 'MyCat\MyCat.BackEnd.Mysql.CrossSocket.pas',
+  MyCat.BackEnd.Mysql in 'MyCat\MyCat.BackEnd.Mysql.pas',
+  MyCat.BackEnd in 'MyCat\MyCat.BackEnd.pas',
+  MyCat.Config.Model in 'MyCat\MyCat.Config.Model.pas',
+  MyCat.Config in 'MyCat\MyCat.Config.pas',
+  MyCat.Memory.UnSafe.Row in 'MyCat\MyCat.Memory.UnSafe.Row.pas',
+  MyCat.Net.Mysql in 'MyCat\MyCat.Net.Mysql.pas',
+  MyCat.Net in 'MyCat\MyCat.Net.pas',
+  Mycat.SQLEngine in 'MyCat\Mycat.SQLEngine.pas',
+  MyCat.Util in 'MyCat\MyCat.Util.pas',
+  MyCat.Statistic.Generics.DataSourceSyncRecord in 'MyCat\MyCat.Statistic.Generics.DataSourceSyncRecord.pas',
+  MyCat.Statistic.Generics.HeartBeatRecord in 'MyCat\MyCat.Statistic.Generics.HeartBeatRecord.pas',
+  MyCat.Statistic in 'MyCat\MyCat.Statistic.pas';
+
+begin
+  try
+    { TODO -oUser -cConsole Main : Insert code here }
+  except
+    on E: Exception do
+      Writeln(E.ClassName, ': ', E.Message);
+  end;
+end.

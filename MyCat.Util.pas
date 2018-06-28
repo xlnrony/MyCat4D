@@ -6,6 +6,15 @@ uses
   System.SysUtils, System.DateUtils;
 
 type
+  // *
+  // * 弱精度的计时器，考虑性能不使用同步策略。
+  // *
+  TTimeUtil = class
+  public
+    class function CurrentTimeMillis: Int64; static;
+    class function CurrentTimeNanos: Int64; static;
+  end;
+
   TDateTimeUtil = class
   public
     class function FULL_DATETIME_PATTERN: TFormatSettings; static;
@@ -582,6 +591,18 @@ class function TDateTimeUtil.ParseDateTime(DateTimeStr: string;
   DatePattern: TFormatSettings): TDateTime;
 begin
   Result := StrToDateTime(DateTimeStr, DatePattern);
+end;
+
+{ TTimeUtil }
+
+class function TTimeUtil.CurrentTimeMillis: Int64;
+begin
+  Result := MilliSecondsBetween(Now, 0);
+end;
+
+class function TTimeUtil.CurrentTimeNanos: Int64;
+begin
+  Result := CurrentTimeMillis * 1000000;
 end;
 
 end.

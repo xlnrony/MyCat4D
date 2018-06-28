@@ -1,0 +1,105 @@
+unit MyCat.Statistic.Generics.HeartBeatRecord;
+
+interface
+
+uses
+  SysUtils;
+
+// 结构的容器的声明模版
+
+{$I DGLCfg.inc_h}
+
+type
+  THeartBeatRecord = record
+  private
+    FTime: Int64;
+    FValue: Int64;
+  public
+    constructor Create(Time: Int64; Value: Int64);
+    property Time: Int64 read FTime write FTime;
+    property Value: Int64 read FValue write FValue;
+  end;
+
+  _ValueType = THeartBeatRecord;
+
+const
+  _NULL_Value: _ValueType = (FTime: (0); FValue: (0));
+
+function _HashValue(const Value: _ValueType): Cardinal;
+{$IFDEF _DGL_Inline} inline; {$ENDIF}// Hash函数
+
+{$DEFINE _DGL_Compare}  // 是否需要比较函数，可选
+function _IsEqual(const A, B: _ValueType): boolean;
+{$IFDEF _DGL_Inline} inline;
+{$ENDIF} // result:=(a=b);
+function _IsLess(const A, B: _ValueType): boolean;
+{$IFDEF _DGL_Inline} inline;
+{$ENDIF}  // result:=(a<b); 默认排序准则
+
+{$I DGL.inc_h}
+
+type
+  IHeartbeatRecordIterator = _IIterator;
+  IHeartbeatRecordContainer = _IContainer;
+  IHeartbeatRecordSerialContainer = _ISerialContainer;
+  IHeartbeatRecordVector = _IVector;
+  IHeartbeatRecordList = _IList;
+  IHeartbeatRecordDeque = _IDeque;
+  IHeartbeatRecordStack = _IStack;
+  IHeartbeatRecordQueue = _IQueue;
+  IHeartbeatRecordPriorityQueue = _IPriorityQueue;
+  IHeartbeatRecordSet = _ISet;
+  IHeartbeatRecordMultiSet = _IMultiSet;
+
+  THeartbeatRecordPointerItBox = _TPointerItBox_Obj;
+
+  THeartbeatRecordVector = _TVector;
+  IHeartbeatRecordVectorIterator = _IVectorIterator; // 速度比_IIterator稍快一点:)
+  THeartbeatRecordDeque = _TDeque;
+  THeartbeatRecordList = _TList;
+  THeartbeatRecordStack = _TStack;
+  THeartbeatRecordQueue = _TQueue;
+  THeartbeatRecordPriorityQueue = _TPriorityQueue;
+  THeartbeatRecordHashSet = _THashSet;
+  THeartbeatRecordHashMuitiSet = _THashMultiSet;
+
+  //
+
+  IHeartbeatRecordMapIterator = _IMapIterator;
+  IHeartbeatRecordMap = _IMap;
+  IHeartbeatRecordMultiMap = _IMultiMap;
+
+  THeartbeatRecordHashMap = _THashMap;
+  THeartbeatRecordHashMultiMap = _THashMultiMap;
+
+implementation
+
+{$I DGL.inc_pas}
+
+function _HashValue(const Value: _ValueType): Cardinal;
+begin
+  Result := Cardinal(Value.FValue) + Cardinal(Value.FTime);
+end;
+
+function _IsEqual(const A, B: _ValueType): boolean;
+begin
+  Result := (A.FValue = B.FValue) and (A.FTime = B.FTime);
+end;
+
+function _IsLess(const A, B: _ValueType): boolean;
+begin
+  if (A.FTime = B.FTime) then
+    Result := A.FValue < B.FValue
+  else
+    Result := A.FTime < B.FTime;
+end;
+
+{ THeartbeatRecord }
+
+constructor THeartBeatRecord.Create(Time, Value: Int64);
+begin
+  FTime := Time;
+  FValue := Value;
+end;
+
+end.

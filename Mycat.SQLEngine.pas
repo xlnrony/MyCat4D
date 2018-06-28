@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes, System.SysUtils, System.Generics.Collections,
-  Net.CrossSocket.Base,
+  MyCat.Net.CrossSocket.Base,
   Mycat.BackEnd.Mysql.CrossSocket.Handler, Mycat.BackEnd.DataSource;
 
 type

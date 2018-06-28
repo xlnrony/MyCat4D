@@ -3,7 +3,7 @@ unit MyCat.BackEnd;
 interface
 
 uses
-  DSTL.STL.Queues, Net.CrossSocket.Base;
+  MyCat.Net.CrossSocket.Base, MyCat.Generics.ICrossConnection;
 
 type
   IBackEndConnection = interface(ICrossConnection)
@@ -40,8 +40,8 @@ type
 
   TConQueue = class
   private
-    FAutoCommitCons: TThreadedQueue<ICrossConnection>;
-    FManCommitCons: TThreadedQueue<ICrossConnection>;
+    FAutoCommitCons: TCrossConnectionList;
+    FManCommitCons: TCrossConnectionList;
     FExecuteCount: Int64;
   public
     constructor Create;
@@ -237,8 +237,8 @@ implementation
 
 constructor TConQueue.Create;
 begin
-  FAutoCommitCons := TThreadedQueue<ICrossConnection>.Create;
-  FManCommitCons := TThreadedQueue<ICrossConnection>.Create;
+  FAutoCommitCons := TCrossConnectionList.Create;
+  FManCommitCons := TCrossConnectionList.Create;
 end;
 
 function TConQueue.GetExecuteCount: Int64;
@@ -252,35 +252,58 @@ begin
 end;
 
 function TConQueue.RemoveConnection(Connection: ICrossConnection): Boolean;
+var
+  Count: Integer;
 begin
-  Result := FAutoCommitCons.remove(Connection);
-  if not Result then
-  begin
-    Result := FManCommitCons.remove(Connection);
+  TMonitor.Enter(FAutoCommitCons);
+  try
+    Count := FAutoCommitCons.EraseValue(Connection);
+  finally
+    TMonitor.Exit(FAutoCommitCons);
   end;
+  if Count = 0 then
+  begin
+    TMonitor.Enter(FManCommitCons);
+    try
+      Count := FManCommitCons.EraseValue(Connection);
+    finally
+      TMonitor.Exit(FManCommitCons);
+    end;
+  end;
+  Result := Count <> 0;
 end;
 
 function TConQueue.TakeIdleCon(AutoCommit: Boolean): ICrossConnection;
 var
-  Queue1: TThreadedQueue<ICrossConnection>;
-  Queue2: TThreadedQueue<ICrossConnection>;
+  List1: TCrossConnectionList;
+  List2: TCrossConnectionList;
 begin
   if AutoCommit then
   begin
-    Queue1 := FAutoCommitCons;
-    Queue2 := FManCommitCons;
+    List1 := FAutoCommitCons;
+    List2 := FManCommitCons;
   end
   else
   begin
-    Queue1 := FManCommitCons;
-    Queue2 := FAutoCommitCons;
+    List1 := FManCommitCons;
+    List2 := FAutoCommitCons;
   end;
-  Result := Queue1.Front;
-  Queue1.Pop;
+  TMonitor.Enter(List1);
+  try
+    Result := List1.Front;
+    List1.PopFront;
+  finally
+    TMonitor.Exit(List1);
+  end;
   if (Result = nil) or (Result.ConnectStatus in [csDisconnected, csClosed]) then
   begin
-    Result := Queue2.Front;
-    Queue2.Pop;
+    TMonitor.Enter(List2);
+    try
+      Result := List2.Front;
+      List2.PopFront;
+    finally
+      TMonitor.Exit(List2);
+    end;
   end;
   if Result.ConnectStatus in [csDisconnected, csClosed] then
   begin

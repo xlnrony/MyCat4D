@@ -3,7 +3,7 @@ unit MyCat.BackEnd.Mysql.CrossSocket.Handler;
 interface
 
 uses
-  System.Generics.Collections, Net.CrossSocket.Base, System.SysUtils;
+  System.Generics.Collections, MyCat.Net.CrossSocket.Base, System.SysUtils;
 
 type
   IResponseHandler = interface
