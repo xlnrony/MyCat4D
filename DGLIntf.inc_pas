@@ -145,7 +145,7 @@ end;
 function _IIterator.GetNextValue(const Step: integer): _ValueType;
 begin
   result:=self._ObjIteratorClass.GetNextValue(self,Step);
-end;                 
+end;
 
 function _IIterator.GetValue: _ValueType;
 begin
@@ -193,6 +193,28 @@ end;
 function _IIterator.IteratorTraits():TIteratorTraits;
 begin
   result:=_ObjIteratorClass.IteratorTraits();
+end;
+
+constructor _TEnumerator.Create(Container: _IContainer);
+begin
+  FContainer := Container;
+  FIterator := Container.ItBegin;
+end;
+
+function _TEnumerator.GetCurrent: _ValueType;
+begin
+  Result := FIterator.Value;
+end;
+
+function _TEnumerator.MoveNext: Boolean;
+begin
+  FIterator.Next;
+  Result := not FIterator.IsEqual(FContainer.ItEnd);
+end;
+
+function _TInterfacedObject.GetEnumerator: _TEnumerator;
+begin
+  Result := _TEnumerator.Create(_IContainer(_IEnumerator(Self)));
 end;
 
 {$endif } // __DGLIntf_inc_pas_

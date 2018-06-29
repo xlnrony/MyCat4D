@@ -32,7 +32,7 @@ type
   _TMapIterator = _TRBTreeBaseIterator;
 
 type
-  _TMap_Base = class(TInterfacedObject)
+  _TMap_Base = class(_TInterfacedObject)
   protected
     FRB_TRee : _TRB_Tree;
   public

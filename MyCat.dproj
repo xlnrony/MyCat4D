@@ -119,15 +119,11 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="MyCat.BackEnd.DataSource.pas"/>
-        <DCCReference Include="MyCat.BackEnd.HeartBeat.pas"/>
-        <DCCReference Include="MyCat.BackEnd.Mysql.CrossSocket.Handler.pas"/>
-        <DCCReference Include="MyCat.BackEnd.Mysql.CrossSocket.pas"/>
         <DCCReference Include="MyCat.BackEnd.Mysql.pas"/>
         <DCCReference Include="MyCat.BackEnd.pas"/>
         <DCCReference Include="MyCat.Config.Model.pas"/>
         <DCCReference Include="MyCat.Config.pas"/>
-        <DCCReference Include="MyCat.Generics.ICrossConnection.pas"/>
+        <DCCReference Include="MyCat.BackEnd.Generics.BackEndConnection.pas"/>
         <DCCReference Include="MyCat.Memory.UnSafe.Row.pas"/>
         <DCCReference Include="MyCat.Net.Mysql.pas"/>
         <DCCReference Include="MyCat.Net.pas"/>
@@ -138,10 +134,10 @@
         <DCCReference Include="MyCat.Util.pas"/>
         <DCCReference Include="MyCat.Net.CrossSocket.Base.pas"/>
         <DCCReference Include="MyCat.Net.CrossSocket.pas"/>
-        <DCCReference Include="MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatConnection.pas"/>
+        <DCCReference Include="MyCat.BackEnd.Generics.HeartBeatConnection.pas"/>
         <DCCReference Include="MyCat.Util.Logger.pas"/>
-        <DCCReference Include="MyCat.BackEnd.Mysql.CrossSocket.Handler.ResponseHandler.pas"/>
         <DCCReference Include="MyCat.Generics.Bytes.pas"/>
+        <DCCReference Include="MyCat.BackEnd.Interfaces.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -1,0 +1,7 @@
+unit MyCat.BackEnd.Intface;
+
+interface
+
+implementation
+
+end.

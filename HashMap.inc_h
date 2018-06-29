@@ -32,7 +32,7 @@ type
   _THashMapIterator = _THashBaseIterator;
 
 type
-  _THashMap_Base = class(TInterfacedObject)
+  _THashMap_Base = class(_TInterfacedObject)
   protected
     FHashTable : _THashTableBase;
   protected

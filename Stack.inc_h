@@ -39,7 +39,7 @@
   // [相关资料]: (如果有的话)
   // [维护记录]: (类发布后，其修改需要记录下来：修改人、时间、主要原因内容)
   //----------------------------------------------------------------------------
-  _TStack = class(TInterfacedObject,_IStack)
+  _TStack = class(_TInterfacedObject,_IStack)
   private
     FBaseContainer : _TDefaultStackBaseContainer;
   public

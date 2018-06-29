@@ -53,7 +53,7 @@ type
   // [维护记录]: (类发布后，其修改需要记录下来：修改人、时间、主要原因内容)
   //----------------------------------------------------------------------------
 
-  _TList = class(TInterfacedObject,_IList,_ISerialContainer,_IContainer)
+  _TList = class(_TInterfacedObject,_IList,_ISerialContainer,_IContainer)
   private
     //使用双向循环链表
     FItEndNode  : _TListNodeBase;
@@ -129,18 +129,6 @@ type
     destructor Destroy(); override;
   public
     procedure Swap(AList:_TList);  {$ifdef _DGL_Inline} inline; {$endif}
-  public type
-    TEnumerator = class
-      FList: _TList;
-      FIterator: _IIterator;
-    public
-      constructor Create(List: _TList);
-      function GetCurrent: _ValueType;
-      function MoveNext: Boolean;
-      property Current: _ValueType read GetCurrent;
-    end;
-  public
-    function GetEnumerator: TEnumerator;
   end;
 
   //_TListIterator

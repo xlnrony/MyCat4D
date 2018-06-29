@@ -51,7 +51,7 @@ type
     class function    Clone(const SelfItData:_IIterator):_IIterator; override;
   end;
 
-  _THashSet_Base  = class(TInterfacedObject)
+  _THashSet_Base  = class(_TInterfacedObject)
   protected
     FHashTable : _THashTableBase;
   public

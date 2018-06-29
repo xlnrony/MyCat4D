@@ -3,7 +3,7 @@ unit MyCat.BackEnd.Mysql;
 interface
 
 uses
-  System.Classes, System.SysUtils, Data.FmtBcd, System.Generics.Collections;
+  System.Classes, System.SysUtils, Data.FmtBcd, MyCat.BackEnd;
 
 type
   TMySQLMessage = record
@@ -251,6 +251,39 @@ type
   // }
   //
   // }
+
+
+
+  TMySQLConnection = class(TCrossConnection, IBackEndConnection)
+    function IsModifiedSQLExecuted: Boolean;
+    function IsFromSlaveDB: Boolean;
+    function GetSchema: string;
+    procedure SetSchema(newSchema: string);
+    function GetLastTime: Int64;
+    function IsClosedOrQuit: Boolean;
+    procedure SetAttachment(attachment: TObject);
+    procedure Quit;
+    procedure SetLastTime(currentTimeMillis: Int64);
+    procedure Release;
+    function SetResponseHandler(CommandHandler: ResponseHandler): Boolean;
+    procedure Commit();
+    procedure Query(sql: string);
+    function GetAttachment: TObject;
+    // procedure execute(node: RouteResultsetNode; source: ServerConnection;
+    // autocommit: Boolean);
+    procedure RecordSql(host: String; schema: String; statement: String);
+    function SyncAndExcute: Boolean;
+    procedure Rollback;
+    function GetBorrowed: Boolean;
+    procedure SetBorrowed(Borrowed: Boolean);
+    function GetTxIsolation: Integer;
+    function IsAutocommit: Boolean;
+    function GetId: Int64;
+    procedure DiscardClose(reason: string);
+
+    property Borrowed: Boolean read GetBorrowed write SetBorrowed;
+    property schema: string read GetSchema write SetSchema;
+  end;
 
 implementation
 

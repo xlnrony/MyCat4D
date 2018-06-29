@@ -1,0 +1,94 @@
+unit MyCat.BackEnd.Intface;
+
+interface
+
+uses
+  System.SysUtils, MyCat.Net.CrossSocket.Base type IResponseHandler = interface;
+
+type
+  IBackEndConnection = interface(ICrossConnection)
+    function IsModifiedSQLExecuted: Boolean;
+    function IsFromSlaveDB: Boolean;
+    function GetSchema: string;
+    procedure SetSchema(newSchema: string);
+    function GetLastTime: Int64;
+    function IsClosedOrQuit: Boolean;
+    procedure SetAttachment(attachment: TObject);
+    procedure Quit;
+    procedure SetLastTime(currentTimeMillis: Int64);
+    procedure Release;
+    function SetResponseHandler(CommandHandler: IResponseHandler): Boolean;
+    procedure Commit();
+    procedure Query(sql: string);
+    function GetAttachment: TObject;
+    // procedure execute(node: RouteResultsetNode; source: ServerConnection;
+    // autocommit: Boolean);
+    procedure RecordSql(host: String; schema: String; statement: String);
+    function SyncAndExcute: Boolean;
+    procedure Rollback;
+    function GetBorrowed: Boolean;
+    procedure SetBorrowed(Borrowed: Boolean);
+    function GetTxIsolation: Integer;
+    function IsAutocommit: Boolean;
+    function GetId: Int64;
+    procedure DiscardClose(reason: string);
+
+    property Borrowed: Boolean read GetBorrowed write SetBorrowed;
+    property schema: string read GetSchema write SetSchema;
+  end;
+
+  IResponseHandler = interface
+
+    // *
+    // * 无法获取连接
+    // *
+    // * @param e
+    // * @param conn
+    // *
+    procedure ConnectionError(E: Exception; Connection: IBackEndConnection);
+
+    // *
+    // * 已获得有效连接的响应处理
+    // *
+    procedure ConnectionAcquired(Connection: IBackEndConnection);
+
+    // *
+    // * 收到错误数据包的响应处理
+    // *
+    procedure ErrorResponse(Err: TBytes; Connection: IBackEndConnection);
+
+    // *
+    // * 收到OK数据包的响应处理
+    // *
+    procedure OkResponse(OK: TBytes; Connection: IBackEndConnection);
+
+    // *
+    // * 收到字段数据包结束的响应处理
+    // *
+    procedure FieldEofResponse(Header: TBytes; Fields: TArray<TBytes>;
+      Eof: TBytes; Connection: IBackEndConnection);
+
+    // *
+    // * 收到行数据包的响应处理
+    // *
+    procedure RowResponse(Row: TBytes; Connection: IBackEndConnection);
+
+    // *
+    // * 收到行数据包结束的响应处理
+    // *
+    procedure RowEofResponse(Eof: TBytes; Connection: IBackEndConnection);
+
+    // *
+    // * 写队列为空，可以写数据了
+    // *
+    procedure WriteQueueAvailable;
+
+    // *
+    // * on connetion close event
+    // *
+    procedure ConnectionClose(Connection: IBackEndConnection; reason: string);
+  end;
+
+implementation
+
+end.

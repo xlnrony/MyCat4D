@@ -229,25 +229,29 @@ type
     function  Clone(const NextStep:integer):_IIterator;overload;  {$ifdef _DGL_Inline} inline; {$endif}
   end;
 
-          _DGL_TObjIterator = class(TObject)
-          public
-            class function  IteratorTraits():TIteratorTraits; virtual;  abstract;
-            class procedure SetValue(const SelfItData:_IIterator;const aValue: _ValueType); virtual; abstract;
-            class function  GetValue(const SelfItData:_IIterator): _ValueType; virtual; abstract;
-            class function  GetNextValue(const SelfItData:_IIterator;const Step:integer): _ValueType; virtual; abstract;
-            class procedure SetNextValue(const SelfItData:_IIterator;const Step:integer;const aValue:_ValueType); virtual; abstract;
-            class function  IsEqual(const SelfItData:_IIterator;const Iterator:_IIterator):boolean; virtual; abstract;
-            class function  Distance(const SelfItData:_IIterator;const Iterator:_IIterator):integer; virtual; abstract;
-            class procedure Assign (var SelfItData:_IIterator;const Iterator:_IIterator); virtual; abstract;
-            class procedure Next(var SelfItData:_IIterator);overload; virtual; abstract;
-            class procedure Next(var SelfItData:_IIterator;const Step:integer);overload; virtual; abstract;
-            class procedure Previous(var SelfItData:_IIterator);  virtual; abstract;
-            class function  Clone(const SelfItData:_IIterator):_IIterator;overload; virtual; abstract;
-            class function  Clone(const SelfItData:_IIterator;const NextStep:integer):_IIterator;overload; virtual; abstract;
-            class function  Map_GetKey(const SelfItData:_IIterator): _KeyType; virtual; abstract;
-          end;
+  _DGL_TObjIterator = class(TObject)
+  public
+    class function  IteratorTraits():TIteratorTraits; virtual;  abstract;
+    class procedure SetValue(const SelfItData:_IIterator;const aValue: _ValueType); virtual; abstract;
+    class function  GetValue(const SelfItData:_IIterator): _ValueType; virtual; abstract;
+    class function  GetNextValue(const SelfItData:_IIterator;const Step:integer): _ValueType; virtual; abstract;
+    class procedure SetNextValue(const SelfItData:_IIterator;const Step:integer;const aValue:_ValueType); virtual; abstract;
+    class function  IsEqual(const SelfItData:_IIterator;const Iterator:_IIterator):boolean; virtual; abstract;
+    class function  Distance(const SelfItData:_IIterator;const Iterator:_IIterator):integer; virtual; abstract;
+    class procedure Assign (var SelfItData:_IIterator;const Iterator:_IIterator); virtual; abstract;
+    class procedure Next(var SelfItData:_IIterator);overload; virtual; abstract;
+    class procedure Next(var SelfItData:_IIterator;const Step:integer);overload; virtual; abstract;
+    class procedure Previous(var SelfItData:_IIterator);  virtual; abstract;
+    class function  Clone(const SelfItData:_IIterator):_IIterator;overload; virtual; abstract;
+    class function  Clone(const SelfItData:_IIterator;const NextStep:integer):_IIterator;overload; virtual; abstract;
+    class function  Map_GetKey(const SelfItData:_IIterator): _KeyType; virtual; abstract;
+  end;
 
-
+  _TEnumerator = class;
+  
+  _IEnumerator = interface
+    function GetEnumerator: _TEnumerator;
+  end;
 
   //容器(Container)的统一说明
   //----------------------------------------------------------------------------
@@ -269,7 +273,7 @@ type
   // [相关资料]: (如果有的话)
   // [维护记录]: (类发布后，其修改需要记录下来：修改人、时间、主要原因内容)
   //----------------------------------------------------------------------------
-  _IContainer = interface
+  _IContainer = interface(_IEnumerator)
     function  ItBegin(): _IIterator;
     function  ItEnd(): _IIterator;
     procedure Clear();
@@ -288,6 +292,17 @@ type
     procedure CloneToInterface(out NewContainer_Interface); //NewContainer:=_IContainer.Clone();
 
     function  GetSelfObj():TObject;
+  end;
+
+  _TEnumerator = class
+    FContainer: _IContainer;
+    FIterator: _IIterator;
+  private
+    function GetCurrent: _ValueType;
+  public
+    constructor Create(Container: _IContainer);
+    function MoveNext: Boolean;
+    property Current: _ValueType read GetCurrent;
   end;
 
   //序列容器(SerialContainer)的统一说明
@@ -660,5 +675,9 @@ type
     class procedure ItCreate(var SelfItData:_IIterator;const AIterator: _IIterator);overload;virtual;
   end;
   
+  _TInterfacedObject = class(TInterfacedObject, _IEnumerator)
+  public
+    function GetEnumerator: _TEnumerator;
+  end;
 
 {$endif } // __DGLIntf_inc_h_

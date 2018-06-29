@@ -6,15 +6,11 @@ program MyCat;
 
 uses
   System.SysUtils,
-  MyCat.BackEnd.DataSource in 'MyCat.BackEnd.DataSource.pas',
-  MyCat.BackEnd.HeartBeat in 'MyCat.BackEnd.HeartBeat.pas',
-  MyCat.BackEnd.Mysql.CrossSocket.Handler in 'MyCat.BackEnd.Mysql.CrossSocket.Handler.pas',
-  MyCat.BackEnd.Mysql.CrossSocket in 'MyCat.BackEnd.Mysql.CrossSocket.pas',
   MyCat.BackEnd.Mysql in 'MyCat.BackEnd.Mysql.pas',
   MyCat.BackEnd in 'MyCat.BackEnd.pas',
   MyCat.Config.Model in 'MyCat.Config.Model.pas',
   MyCat.Config in 'MyCat.Config.pas',
-  MyCat.Generics.ICrossConnection in 'MyCat.Generics.ICrossConnection.pas',
+  MyCat.BackEnd.Generics.BackEndConnection in 'MyCat.BackEnd.Generics.BackEndConnection.pas',
   MyCat.Memory.UnSafe.Row in 'MyCat.Memory.UnSafe.Row.pas',
   MyCat.Net.Mysql in 'MyCat.Net.Mysql.pas',
   MyCat.Net in 'MyCat.Net.pas',
@@ -25,10 +21,10 @@ uses
   MyCat.Util in 'MyCat.Util.pas',
   MyCat.Net.CrossSocket.Base in 'MyCat.Net.CrossSocket.Base.pas',
   MyCat.Net.CrossSocket in 'MyCat.Net.CrossSocket.pas',
-  MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatConnection in 'MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatConnection.pas',
+  MyCat.BackEnd.Generics.HeartBeatConnection in 'MyCat.BackEnd.Generics.HeartBeatConnection.pas',
   MyCat.Util.Logger in 'MyCat.Util.Logger.pas',
-  MyCat.BackEnd.Mysql.CrossSocket.Handler.ResponseHandler in 'MyCat.BackEnd.Mysql.CrossSocket.Handler.ResponseHandler.pas',
-  MyCat.Generics.Bytes in 'MyCat.Generics.Bytes.pas';
+  MyCat.Generics.Bytes in 'MyCat.Generics.Bytes.pas',
+  MyCat.BackEnd.Interfaces in 'MyCat.BackEnd.Interfaces.pas';
 
 begin
   try

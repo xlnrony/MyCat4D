@@ -141,6 +141,7 @@ type
     procedure Assign(const ItBegin,ItEnd:_IIterator);overload;
     function  Clone():_IContainer; {$ifdef _DGL_Inline} inline; {$endif}
     procedure CloneToInterface(out NewContainer);  {$ifdef _DGL_Inline} inline; {$endif}
+    function GetEnumerator: _TEnumerator;
   public
     procedure Swap(ADeque:_TDeque); {$ifdef _DGL_Inline} inline; {$endif}
   public

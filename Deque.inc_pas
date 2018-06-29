@@ -1107,7 +1107,10 @@ begin
   self.PushBack(ItBegin,ItEnd);
 end;
 
-
+function _TDeque.GetEnumerator: _TEnumerator;
+begin
+  inherited;
+end;
 
 /////////////////////
 

@@ -41,13 +41,13 @@ type
   // [相关资料]: (如果有的话)
   // [维护记录]: (类发布后，其修改需要记录下来：修改人、时间、主要原因内容)
   //----------------------------------------------------------------------------
-  _TPriorityQueue = class(TInterfacedObject,_IPriorityQueue)
+  _TPriorityQueue = class(_TInterfacedObject,_IPriorityQueue)
   private
     FBaseContainer   : _TDefaultPriorityQueueBaseContainer;
     FIsCompareFunctionUsedSelf :boolean;
     FOtherCompareFunction : TTestBinaryFunction;
     FCompareFunction : TTestBinaryFunctionOfObject;
-    function OtherCompareFunction_To_CompareFunction(const Value0,Value1:_ValueType):Boolean; 
+    function OtherCompareFunction_To_CompareFunction(const Value0,Value1:_ValueType):Boolean;
   public
     //实现_IQueue接口
     procedure Push(const Value: _ValueType);    {$ifdef _DGL_Inline} inline; {$endif}
@@ -61,7 +61,7 @@ type
     function  IsEquals(const AContainer: _IPriorityQueue): Boolean;    {$ifdef _DGL_Inline} inline; {$endif}
     function  Clone():_IPriorityQueue;                                   {$ifdef _DGL_Inline} inline; {$endif}
     procedure Assign(const num:integer;const Value: _ValueType);overload;     {$ifdef _DGL_Inline} inline; {$endif}
-    procedure Assign(const ItBegin,ItEnd:_IIterator);overload;            
+    procedure Assign(const ItBegin,ItEnd:_IIterator);overload;
     function  GetSelfObj():TObject;     {$ifdef _DGL_Inline} inline; {$endif}
   public
     constructor Create(); overload;
@@ -70,7 +70,7 @@ type
     constructor Create(const TestBinaryFunction:TTestBinaryFunctionOfObject); overload;
     constructor Create(const ItBegin,ItEnd:_IIterator);overload;
     constructor Create(const ItBegin,ItEnd:_IIterator;const TestBinaryFunction:TTestBinaryFunction);overload;
-    constructor Create(const ItBegin,ItEnd:_IIterator;const TestBinaryFunction:TTestBinaryFunctionOfObject);overload;   
+    constructor Create(const ItBegin,ItEnd:_IIterator;const TestBinaryFunction:TTestBinaryFunctionOfObject);overload;
     destructor  Destroy(); override;
   end;
 

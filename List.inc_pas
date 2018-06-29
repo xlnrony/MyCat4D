@@ -489,28 +489,6 @@ begin
   self.Sort(_IsLess);
 end;
 
-constructor _TList.TEnumerator.Create(List: _TList);
-begin
-  FList := List;
-  FIterator := List.ItBegin;
-end;
-
-function _TList.TEnumerator.GetCurrent: _ValueType;
-begin
-  Result := FIterator.Value;
-end;
-
-function _TList.TEnumerator.MoveNext: Boolean;
-begin
-  FIterator.Next;
-  Result := FIterator.IsEqual(FList.ItEnd);
-end;
-
-function _TList.GetEnumerator: TEnumerator;
-begin
-  Result := TEnumerator.Create(Self);
-end;
-
   type
     _PListNodeArray=array [0..maxint div (sizeof(_PListNode))-1] of _PListNode;
     _PPListNodeArray = ^_PListNodeArray;

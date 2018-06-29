@@ -40,7 +40,7 @@ type
   // [相关资料]: (如果有的话)
   // [维护记录]: (类发布后，其修改需要记录下来：修改人、时间、主要原因内容)
   //----------------------------------------------------------------------------
-  _TVector = class(TInterfacedObject,_IVector,_ISerialContainer,_IContainer)
+  _TVector = class(_TInterfacedObject,_IVector,_ISerialContainer,_IContainer)
   private
     FCount        : Integer;
     FArrayLength  : integer;
