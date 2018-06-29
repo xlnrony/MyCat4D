@@ -1,0 +1,83 @@
+unit MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatConnection;
+
+interface
+
+uses
+  System.SysUtils, MyCat.Net.CrossSocket.Base;
+
+// 结构的容器的声明模版
+
+{$I DGLCfg.inc_h}
+
+type
+  THeartBeatConnection = record
+  public
+    FTimeOutTimestamp: Int64;
+    FConnection: ICrossConnection;
+
+    constructor Create(const Connection: ICrossConnection);
+  end;
+
+  _KeyType = Int64;
+  _ValueType = THeartBeatConnection;
+
+const
+  _NULL_Value: _ValueType = (FTimeOutTimestamp: (0); FConnection: (nil));
+
+{$DEFINE _DGL_NotHashFunction}
+{$DEFINE _DGL_Compare}  // 是否需要比较函数，可选
+function _IsEqual(const A, B: _ValueType): boolean;
+{$IFDEF _DGL_Inline} inline;
+{$ENDIF} // result:=(a=b);
+function _IsLess(const A, B: _ValueType): boolean;
+{$IFDEF _DGL_Inline} inline;
+{$ENDIF}  // result:=(a<b); 默认排序准则
+
+{$I Map.inc_h} // "类"模版的声明文件
+{$I HashMap.inc_h} // "类"模版的声明文件
+
+type
+  IHeartBeatConnectionIterator = _IIterator;
+  IHeartBeatConnectionContainer = _IContainer;
+  IHeartBeatConnectionSerialContainer = _ISerialContainer;
+  IHeartBeatConnectionVector = _IVector;
+  IHeartBeatConnectionList = _IList;
+  IHeartBeatConnectionDeque = _IDeque;
+  IHeartBeatConnectionStack = _IStack;
+  IHeartBeatConnectionQueue = _IQueue;
+  IHeartBeatConnectionPriorityQueue = _IPriorityQueue;
+  IHeartBeatConnectionSet = _ISet;
+  IHeartBeatConnectionMultiSet = _IMultiSet;
+
+  IHeartBeatConnectionMapIterator = _IMapIterator;
+  IHeartBeatConnectionMap = _IMap;
+  IHeartBeatConnectionMultiMap = _IMultiMap;
+
+  THeartBeatConnectionHashMap = _THashMap;
+  THeartBeatConnectionHashMultiMap = _THashMultiMap;
+
+implementation
+
+{$I Map.inc_pas} // "类"模版的实现文件
+{$I HashMap.inc_pas} // "类"模版的实现文件
+
+function _IsEqual(const A, B: _ValueType): boolean;
+begin
+  Result := (A.FTimeOutTimestamp = B.FTimeOutTimestamp) and
+    (A.FConnection = B.FConnection);
+end;
+
+function _IsLess(const A, B: _ValueType): boolean;
+begin
+  Result := A.FTimeOutTimestamp < B.FTimeOutTimestamp;
+end;
+
+{ THeartBeatConnection }
+
+constructor THeartBeatConnection.Create(Conn: ICrossConnection);
+begin
+  FTimeOutTimestamp = System.currentTimeMillis() + 20 * 1000 L;
+  FConnection = Conn;
+end;
+
+end.

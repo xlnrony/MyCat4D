@@ -122,11 +122,11 @@ constructor TDBHeartbeat.Create;
 begin
   FHeartbeatTimeout := DEFAULT_HEARTBEAT_TIMEOUT; // 心跳超时时间
   FHeartbeatRetry := DEFAULT_HEARTBEAT_RETRY; // 检查连接发生异常到切换，重试次数
-  FIsStop := new AtomicBoolean(true);
-  FIsChecking := new AtomicBoolean(false);
-  FErrorCount := new AtomicInteger(0);
-  FRecorder := new HeartbeatRecorder();
-  FAsynRecorder := new DataSourceSyncRecorder();
+  FIsStop := true;
+  FIsChecking := false;
+  FErrorCount := 0;
+  FRecorder := THeartbeatRecorder.Create;
+  FAsynRecorder := TDataSourceSyncRecorder.Create;
 end;
 
 end.

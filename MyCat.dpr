@@ -24,7 +24,11 @@ uses
   MyCat.Statistic in 'MyCat.Statistic.pas',
   MyCat.Util in 'MyCat.Util.pas',
   MyCat.Net.CrossSocket.Base in 'MyCat.Net.CrossSocket.Base.pas',
-  MyCat.Net.CrossSocket in 'MyCat.Net.CrossSocket.pas';
+  MyCat.Net.CrossSocket in 'MyCat.Net.CrossSocket.pas',
+  MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatConnection in 'MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatConnection.pas',
+  MyCat.Util.Logger in 'MyCat.Util.Logger.pas',
+  MyCat.BackEnd.Mysql.CrossSocket.Handler.ResponseHandler in 'MyCat.BackEnd.Mysql.CrossSocket.Handler.ResponseHandler.pas',
+  MyCat.Generics.Bytes in 'MyCat.Generics.Bytes.pas';
 
 begin
   try

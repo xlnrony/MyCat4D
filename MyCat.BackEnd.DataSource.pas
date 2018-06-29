@@ -3,7 +3,8 @@ unit MyCat.BackEnd.DataSource;
 interface
 
 uses
-  MyCat.Config.Model,MyCat.BackEnd, MyCat.BackEnd.HeartBeat;
+  MyCat.Config.Model, MyCat.BackEnd, MyCat.BackEnd.HeartBeat,
+  MyCat.BackEnd.Mysql.CrossSocket.Handler;
 
 type
   TPhysicalDatasource = class
@@ -11,13 +12,12 @@ type
     FName: String;
     FSize: Integer;
     FConfig: TDBHostConfig;
-    FConMap: TConMap ;
+    FConMap: TConMap;
     FHeartbeat: TDBHeartbeat;
     FReadNode: Boolean;
     FHeartbeatRecoveryTime: Int64;
     FHostConfig: TDataHostConfig;
-    FConnHeartBeatHanler: TConnectionHeartBeatHandler = new
-      ConnectionHeartBeatHandler();
+    FConnHeartBeatHanler: TConnectionHeartBeatHandler;
     FDBPool: PhysicalDBPool;
 
     // 添加DataSource读计数
@@ -26,10 +26,10 @@ type
     // 添加DataSource写计数
     FWriteCount: Int64; // = new AtomicLong(0);
   public
-    constructor Create(Config: TDBHostConfig, hostConfig: TDataHostConfig,
-      isReadNode: Boolean);
+    constructor Create(Config: TDBHostConfig; HostConfig: TDataHostConfig;
+      IsReadNode: Boolean);
   end;
-//  = new ConMap();
+  // = new ConMap();
 
   // public abstract class PhysicalDatasource {
   //
@@ -616,5 +616,14 @@ type
   // }
 
 implementation
+
+{ TPhysicalDatasource }
+
+constructor TPhysicalDatasource.Create(Config: TDBHostConfig;
+  HostConfig: TDataHostConfig; IsReadNode: Boolean);
+begin
+FConnHeartBeatHanler:
+  TConnectionHeartBeatHandler = new ConnectionHeartBeatHandler();
+end;
 
 end.

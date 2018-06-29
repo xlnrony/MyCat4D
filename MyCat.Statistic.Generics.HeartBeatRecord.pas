@@ -3,7 +3,7 @@ unit MyCat.Statistic.Generics.HeartBeatRecord;
 interface
 
 uses
-  SysUtils;
+  System.SysUtils;
 
 // 结构的容器的声明模版
 

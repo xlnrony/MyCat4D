@@ -3,7 +3,8 @@ unit MyCat.BackEnd;
 interface
 
 uses
-  MyCat.Net.CrossSocket.Base, MyCat.Generics.ICrossConnection;
+  MyCat.Net.CrossSocket.Base, MyCat.Generics.ICrossConnection,
+  MyCat.BackEnd.Mysql.CrossSocket.Handler.ResponseHandler;
 
 type
   IBackEndConnection = interface(ICrossConnection)
@@ -18,7 +19,7 @@ type
     procedure Quit;
     procedure SetLastTime(currentTimeMillis: Int64);
     procedure Release;
-    // function setResponseHandler(commandHandler: ResponseHandler): Boolean;
+    function SetResponseHandler(CommandHandler: IResponseHandler): Boolean;
     procedure Commit();
     procedure Query(sql: string);
     function GetAttachment: TObject;

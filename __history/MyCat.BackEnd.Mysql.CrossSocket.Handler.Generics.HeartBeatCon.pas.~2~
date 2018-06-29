@@ -1,0 +1,21 @@
+unit MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatCon;
+
+interface
+
+type
+  // class HeartBeatCon {
+  // public final long timeOutTimestamp;
+  // public final BackendConnection conn;
+  //
+  // public HeartBeatCon(BackendConnection conn) {
+  // super();
+  // this.timeOutTimestamp = System.currentTimeMillis() + 20 * 1000L;
+  // this.conn = conn;
+  // }
+  //
+  // }
+
+
+implementation
+
+end.

@@ -1,0 +1,104 @@
+unit MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatConnection;
+
+interface
+
+uses
+  System.SysUtils, MyCat.Net.CrossSocket.Base;
+
+// 结构的容器的声明模版
+
+{$I DGLCfg.inc_h}
+
+type
+  THeartBeatConnection = record
+  public
+    FTimeOutTimestamp: Int64;
+    FConnection: ICrossConnection;
+
+    constructor Create(Connection: ICrossConnection);
+  end;
+
+  _KeyType     = Int64;
+  _ValueType = THeartBeatConnection;
+
+const
+  _NULL_Value: _ValueType = (FTimeOutTimestamp: (0); FConnection: (nil));
+
+function _HashValue(const Value: _ValueType): Cardinal;
+{$IFDEF _DGL_Inline} inline; {$ENDIF}// Hash函数
+
+{$DEFINE _DGL_Compare}  // 是否需要比较函数，可选
+function _IsEqual(const A, B: _ValueType): boolean;
+{$IFDEF _DGL_Inline} inline;
+{$ENDIF} // result:=(a=b);
+function _IsLess(const A, B: _ValueType): boolean;
+{$IFDEF _DGL_Inline} inline;
+{$ENDIF}  // result:=(a<b); 默认排序准则
+
+{$I DGL.inc_h}
+
+type
+  IHeartBeatConnectionIterator = _IIterator;
+  IHeartBeatConnectionContainer = _IContainer;
+  IHeartBeatConnectionSerialContainer = _ISerialContainer;
+  IHeartBeatConnectionVector = _IVector;
+  IHeartBeatConnectionList = _IList;
+  IHeartBeatConnectionDeque = _IDeque;
+  IHeartBeatConnectionStack = _IStack;
+  IHeartBeatConnectionQueue = _IQueue;
+  IHeartBeatConnectionPriorityQueue = _IPriorityQueue;
+  IHeartBeatConnectionSet = _ISet;
+  IHeartBeatConnectionMultiSet = _IMultiSet;
+
+  THeartBeatConnectionPointerItBox = _TPointerItBox_Obj;
+
+  THeartBeatConnectionVector = _TVector;
+  IHeartBeatConnectionVectorIterator = _IVectorIterator; // 速度比_IIterator稍快一点:)
+  THeartBeatConnectionDeque = _TDeque;
+  THeartBeatConnectionList = _TList;
+  THeartBeatConnectionStack = _TStack;
+  THeartBeatConnectionQueue = _TQueue;
+  THeartBeatConnectionPriorityQueue = _TPriorityQueue;
+  THeartBeatConnectionHashSet = _THashSet;
+  THeartBeatConnectionHashMuitiSet = _THashMultiSet;
+
+  //
+
+  IHeartBeatConnectionMapIterator = _IMapIterator;
+  IHeartBeatConnectionMap = _IMap;
+  IHeartBeatConnectionMultiMap = _IMultiMap;
+
+  THeartBeatConnectionHashMap = _THashMap;
+  THeartBeatConnectionHashMultiMap = _THashMultiMap;
+
+implementation
+
+{$I DGL.inc_pas}
+
+function _HashValue(const Value: _ValueType): Cardinal;
+begin
+  Result := Cardinal(Value.FTimeOutTimestamp) + Cardinal(Value.FConnection);
+end;
+
+function _IsEqual(const A, B: _ValueType): boolean;
+begin
+  Result := (A.FValue = B.FValue) and (A.FTime = B.FTime);
+end;
+
+function _IsLess(const A, B: _ValueType): boolean;
+begin
+  if (A.FTime = B.FTime) then
+    Result := A.FValue < B.FValue
+  else
+    Result := A.FTime < B.FTime;
+end;
+
+{ THeartBeatCon }
+
+constructor THeartBeatCon.Create(Conn: ICrossConnection);
+begin
+  this.timeOutTimestamp = System.currentTimeMillis() + 20 * 1000 L;
+  this.Conn = Conn;
+end;
+
+end.

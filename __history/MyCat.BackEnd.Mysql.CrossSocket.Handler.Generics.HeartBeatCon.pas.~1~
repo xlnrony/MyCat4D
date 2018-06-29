@@ -1,0 +1,9 @@
+unit MyCat.BackEnd.Mysql.CrossSocket.Handler.Generics.HeartBeatCon;
+
+interface
+
+HeartBeatCon
+
+implementation
+
+end.

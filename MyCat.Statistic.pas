@@ -132,7 +132,7 @@ type
 implementation
 
 uses
-  System.SysUtils, MyCat.Util, Utils.Logger;
+  System.SysUtils, MyCat.Util, MyCat.Util.Logger;
 
 { THeartbeatRecorder }
 

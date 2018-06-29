@@ -1,9 +1,6 @@
-unit MyCat.BackEnd.Mysql.CrossSocket.Handler;
+unit MyCat.BackEnd.Mysql.CrossSocket.Handler.ResponseHandler;
 
 interface
-
-uses
-  System.Generics.Collections, Net.CrossSocket.Base, System.SysUtils;
 
 type
   IResponseHandler = interface
@@ -57,6 +54,7 @@ type
     // *
     procedure ConnectionClose(Connection: ICrossConnection; Reason: string);
   end;
+
 
 implementation
 
